@@ -49,7 +49,12 @@ public class Bluejay {
 
     private static void report(int pos, String where, String message) {
         int line = ((int)source.substring(0,pos).chars().filter(ch -> ch == '\n').count())+1;
-        String[] lines = source.substring(0,pos+1).split("\n");
+        String[] lines;
+        if (pos >= source.length()-1) {
+            lines = source.split("\n");
+        } else {
+            lines = source.substring(0,pos+1).split("\n");
+        }
         int col = lines[lines.length-1].length();
         System.err.println("Error" + where + ": " + message + "\n    " + line + " | " + source.split("\n")[line-1] + "\n       " + " ".repeat(col) + "^-- Here.");
         hadError = true;

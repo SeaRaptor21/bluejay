@@ -96,7 +96,7 @@ class Scanner {
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                    Bluejay.error(line, "Unexpected character.");
+                    Bluejay.error(start, "Unexpected character.");
                 }
                 break;
         }
