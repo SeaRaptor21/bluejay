@@ -47,6 +47,14 @@ public class Bluejay {
         report(pos, "", message);
     }
 
+    static void error(Token token, String message) {
+        if (token.type == TokenType.EOF) {
+            report(token.pos, " at end", message);
+        } else {
+            report(token.pos, " at '" + token.lexeme + "'", message);
+        }
+    }
+
     private static void report(int pos, String where, String message) {
         int line = ((int)source.substring(0,pos).chars().filter(ch -> ch == '\n').count())+1;
         String[] lines;
