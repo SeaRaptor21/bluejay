@@ -42,18 +42,20 @@ def define_ast(base_name, types):
         fields = type.split(':')[1].strip()
         res += define_type(base_name, class_name, fields)
 
-    res += '\n    abstract T accept<T>(Visitor<T> visitor);'
+    res += '\n    abstract <T> T accept(Visitor<T> visitor);'
 
     res += '\n}'
     with open(f'src/com/esjr/bluejay/{base_name}.java', 'w') as f:
         f.write(res)
+
+# These are left over from the C# version.
 
 define_ast("Expr", [
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator_, Expr right",
     "Call     : Expr callee, Token paren, List<Expr> arguments",
     "Grouping : Expr expression",
-    "Literal  : object value",
+    "Literal  : Object value",
     "Logical  : Expr left, Token operator_, Expr right",
     "Unary    : Token operator_, Expr right",
     "Variable : Token name"

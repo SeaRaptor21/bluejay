@@ -148,5 +148,5 @@ abstract class Stmt {
         public final Stmt body;
     }
 
-    abstract T accept<T>(Visitor<T> visitor);
+    abstract <T> T accept(Visitor<T> visitor);
 }

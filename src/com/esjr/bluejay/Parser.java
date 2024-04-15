@@ -26,6 +26,7 @@ class Parser {
         // This function corresponds to the `stmt` rule in the grammar.
         try {
             // Parsing a statement starts here -- we branch off into other functions.
+            return null;
         } catch (ParseError e) {
             // Go into panic mode if we see an error
             synchronize();
@@ -48,7 +49,7 @@ class Parser {
 
         advance();
         while (!isAtEnd()) {
-            if (previous().type == SEMICOLON) return;
+            if (previous().type == EOS) return;
             switch (peek().type) {
                 // add cases for every token we know starts a statement (IF, WHILE, etc.)
                     // return;

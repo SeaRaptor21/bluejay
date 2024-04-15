@@ -1,9 +1,6 @@
 package com.esjr.bluejay;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import static com.esjr.bluejay.TokenType.*;
 
 class Scanner {
@@ -13,6 +10,20 @@ class Scanner {
     private int current = 0;
     private int line = 1;
     private static final Map<String, TokenType> keywords;
+    private static final Set<TokenType> implicitContinuation = Set.of(
+        EOS,
+        COMMA, DOT, MINUS, PLUS, SLASH, STAR,
+        BANG, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+        AND, CLASS, ELSE, FUN, FOR, IF, OR, VAR, WHILE
+        /*  NOTE: Keywords are put in here. 
+            This allows things such as:
+            ```
+            if
+            (x == 5) { ... }
+            ```
+            Do we want this? I'm honstly not sure.
+        */
+    );
 
     static {
         keywords = new HashMap<>();
@@ -45,6 +56,10 @@ class Scanner {
             scanToken();
         }
 
+        if (tokens.get(tokens.size()-1).type != EOS) {
+            tokens.add(new Token(EOS, "", null, start));
+        }
+
         tokens.add(new Token(EOF, "", null, start));
         return tokens;
     }
@@ -60,7 +75,7 @@ class Scanner {
             case '.': addToken(DOT); break;
             case '-': addToken(MINUS); break;
             case '+': addToken(PLUS); break;
-            case ';': addToken(SEMICOLON); break;
+            case ';': addToken(EOS); break;
             case '*': addToken(STAR); break; 
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
@@ -88,7 +103,9 @@ class Scanner {
                 break;
             case '\n':
                 line++;
-                addToken(NEWLINE);
+                if (!tokens.isEmpty() && !implicitContinuation.contains(tokens.get(tokens.size()-1).type)) {
+                    addToken(EOS);
+                }
                 break;
             default:
                 if (isDigit(c)) {

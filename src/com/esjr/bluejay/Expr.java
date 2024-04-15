@@ -77,7 +77,7 @@ abstract class Expr {
     }
 
     static class Literal extends Expr {
-        Literal(object value) {
+        Literal(Object value) {
             this.value = value;
         }
 
@@ -86,7 +86,7 @@ abstract class Expr {
             return visitor.visit(this);
         }
 
-        public final object value;
+        public final Object value;
     }
 
     static class Logical extends Expr {
@@ -134,5 +134,5 @@ abstract class Expr {
         public final Token name;
     }
 
-    abstract T accept<T>(Visitor<T> visitor);
+    abstract <T> T accept(Visitor<T> visitor);
 }

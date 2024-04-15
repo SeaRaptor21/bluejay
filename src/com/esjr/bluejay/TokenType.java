@@ -2,7 +2,7 @@ package com.esjr.bluejay;
 
 public enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, MINUS, NEWLINE, PLUS, SEMICOLON, SLASH, STAR,
+    COMMA, DOT, MINUS, NEWLINE, PLUS, SLASH, STAR,
 
     BANG, BANG_EQUAL,
     EQUAL, EQUAL_EQUAL,
@@ -13,6 +13,8 @@ public enum TokenType {
 
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+
+    EOS, // End Of Statement
 
     EOF
 }
