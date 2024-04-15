@@ -26,7 +26,7 @@ class Parser {
         // This function corresponds to the `stmt` rule in the grammar.
         try {
             // Parsing a statement starts here -- we branch off into other functions.
-            return null;
+            return null; // Remove this line when implementing
         } catch (ParseError e) {
             // Go into panic mode if we see an error
             synchronize();

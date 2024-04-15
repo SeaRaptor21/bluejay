@@ -9,6 +9,7 @@ class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 1;
+    private int grouping = 0;
     private static final Map<String, TokenType> keywords;
     private static final Set<TokenType> implicitContinuation = Set.of(
         EOS,
@@ -67,10 +68,30 @@ class Scanner {
     private void scanToken() {
         char c = advance();
         switch (c) {
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
+            case '(':
+                addToken(LEFT_PAREN);
+                grouping++;
+                break;
+            case ')':
+                addToken(RIGHT_PAREN);
+                grouping--;
+                break;
+            case '[':
+                addToken(LEFT_SQUARE);
+                grouping++;
+                break;
+            case ']':
+                addToken(RIGHT_SQUARE);
+                grouping--;
+                break;
+            case '{':
+                addToken(LEFT_BRACE);
+                //grouping++;
+                break;
+            case '}':
+                addToken(RIGHT_BRACE);
+                //grouping--;
+                break;
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
             case '-': addToken(MINUS); break;
@@ -103,7 +124,7 @@ class Scanner {
                 break;
             case '\n':
                 line++;
-                if (!tokens.isEmpty() && !implicitContinuation.contains(tokens.get(tokens.size()-1).type)) {
+                if (!grouping>0 && !tokens.isEmpty() && !implicitContinuation.contains(tokens.get(tokens.size()-1).type)) {
                     addToken(EOS);
                 }
                 break;
