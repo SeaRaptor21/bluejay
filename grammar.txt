@@ -16,9 +16,10 @@ class -> "class" ID (":" ID ("," ID)*)? "{" (ID "(" params? ")" block)* "}";
 import -> "import" ID ("from" STR)? EOS;
 
 expr -> assign | or;
-assign -> ID "=" assign;
+assign -> ID "=" expr;
 or -> and (("or" | "xor") and)*;
-and -> equal ("and" equal)*;
+and -> not ("and" not)*;
+not -> "not" not | equal;
 equal -> compare (("!=" | "==") compare)*;
 compare -> term ((">" | ">=" | "<" | "<=") term)*;
 term -> factor (("-" | "+") factor)*;
@@ -26,7 +27,7 @@ factor -> pow (("/" | "*" | "%") pow)*;
 pow -> unary ("**" unary)*
 unary -> ("!" | "-") unary | call;
 call -> primary ("(" args? ")" | "." ID)*;
-primary -> "true" | "false" | "nil" | "this" | NUM | STR | ID | "(" expr ")" | "[" (expr ("," expr)*)? "]" | "{" (expr ":" expr ("," expr ":" expr)*) "}";
+primary -> "true" | "false" | "null" | "this" | NUM | STR | ID | "(" expr ")" | "[" (expr ("," expr)*)? "]" | "{" (expr ":" expr ("," expr ":" expr)*) "}";
 
 args -> expr ("," expr)*;
 params -> ID ("=" expr)? ("," ID ("=" expr)?)*;

@@ -41,6 +41,9 @@ public class Bluejay {
         for (Token t : tokens) {
             System.out.println(t.toString());
         }
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> stmts = parser.parse();
     }
 
     static void error(int pos, String message) {

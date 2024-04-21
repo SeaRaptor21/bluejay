@@ -25,13 +25,160 @@ class Parser {
     private Stmt statement() {
         // This function corresponds to the `stmt` rule in the grammar.
         try {
-            // Parsing a statement starts here -- we branch off into other functions.
-            return null; // Remove this line when implementing
+            // Add all other rules above this, for example `if match(IF) return ifStmt();`
+            return exprStmt();
         } catch (ParseError e) {
             // Go into panic mode if we see an error
             synchronize();
             return null;
         }
+    }
+
+    private Stmt exprStmt() {
+        Expr expr = expression();
+        consume(EOS, "Expected end of line or semicolon.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Expr expression() {
+        if (check(ID) && checkNext(EQUAL)) return assign();
+        return or();
+    }
+
+    private Expr.Assign assign() {
+        // I'm using advance instead of return because we already
+        // know these are here from the checks in expression.
+        Token name = advance();
+        advance(); // Equal sign
+        Expr value = expression();
+        return new Expr.Assign(name, value);
+    }
+
+    private Expr or() {
+        Expr expr = and();
+        while (match(OR, XOR)) {
+            Token op = previous();
+            Expr right = and();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr and() {
+        Expr expr = not();
+        while (match(AND)) {
+            Token op = previous();
+            Expr right = not();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr not() {
+        if (match(NOT)) {
+            Token op = previous();
+            Expr right = not();
+            return new Expr.Unary(op, right);
+        } else {
+            return equal();
+        }
+    }
+
+    private Expr equal() {
+        Expr expr = compare();
+        while (match(BANG_EQUAL, EQUAL_EQUAL)) {
+            Token op = previous();
+            Expr right = compare();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr compare() {
+        Expr expr = term();
+        while (match(GREATER, LESS, GREATER_EQUAL, LESS_EQUAL)) {
+            Token op = previous();
+            Expr right = term();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr term() {
+        Expr expr = factor();
+        while (match(MINUS, PLUS)) {
+            Token op = previous();
+            Expr right = factor();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr factor() {
+        Expr expr = pow();
+        while (match(SLASH, STAR, PERCENT)) {
+            Token op = previous();
+            Expr right = pow();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr pow() {
+        Expr expr = unary();
+        while (match(STAR_STAR)) {
+            Token op = previous();
+            Expr right = unary();
+            expr = new Expr.Binary(expr, op, right);
+        }
+        return expr;
+    }
+
+    private Expr unary() {
+        if (match(BANG, MINUS)) {
+            Token op = previous();
+            Expr right = unary();
+            return new Expr.Unary(op, right);
+        } else {
+            return call();
+        }
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+        while (match(LEFT_PAREN, DOT)) {
+            if (previous().type == LEFT_PAREN) {
+                List<Expr> args = new ArrayList<Expr>();
+                if (!check(RIGHT_PAREN)) {
+                    args.add(expression());
+                    while (match(COMMA)) {
+                        args.add(expression());
+                    }
+                }
+                consume(RIGHT_PAREN, "Expected ')' after function call.");
+                expr = new Expr.Call(expr, args);
+            } else {
+                Token name = consume(ID, "Expected attribute or method name after '.'.");
+                expr = new Expr.Attr(expr, name);
+            }
+        }
+        return expr;
+    }
+
+    private Expr primary() {
+        if (match(TRUE)) return new Expr.Literal(true);
+        if (match(FALSE)) return new Expr.Literal(false);
+        if (match(NULL)) return new Expr.Literal(null);
+        if (match(THIS, ID)) return new Expr.Var(previous());
+        if (match(NUM, STR)) {
+            return new Expr.Literal(previous().literal);
+        }
+        if (match(LEFT_PAREN)) {
+            Expr expr = expression();
+            consume(RIGHT_PAREN, "Expected closing ')' after expression.");
+            return new Expr.Grouping(expr);
+        }
+        throw error(peek(), "Expression expected.");
     }
 
     private void synchronize() {
@@ -44,7 +191,7 @@ class Parser {
         To do this, we get back to a spot where we know we can't
         trigger a phantom error -- the start of a statement! So
         we just advance until we see either a semicolon or a token
-        we know starts a statemsnt. This way, we find as many errors
+        we know starts a statement. This way, we find as many errors
         as possible without creating phantoms. */
 
         advance();
@@ -75,6 +222,15 @@ class Parser {
         return peek().type == type;
     }
 
+    private boolean checkNext(TokenType type) {
+        return checkNext(type, 1);
+    }
+
+    private boolean checkNext(TokenType type, int amount) {
+        if (isAtEnd()) return false;
+        return peekNext(amount).type == type;
+    }
+
     private Token advance() {
         if (!isAtEnd()) current++;
         return previous();
@@ -86,6 +242,14 @@ class Parser {
 
     private Token peek() {
         return tokens.get(current);
+    }
+
+    private Token peekNext() {
+        return peekNext(1);
+    }
+
+    private Token peekNext(int amount) {
+        return tokens.get(current+amount);
     }
 
     private Token previous() {

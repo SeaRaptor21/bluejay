@@ -52,13 +52,14 @@ def define_ast(base_name, types):
 
 define_ast("Expr", [
     "Assign   : Token name, Expr value",
-    "Binary   : Expr left, Token operator_, Expr right",
-    "Call     : Expr callee, Token paren, List<Expr> arguments",
+    "Attr     : Expr expr, Token name",
+    "Binary   : Expr left, Token operator, Expr right",
+    "Call     : Expr callee, List<Expr> arguments",
     "Grouping : Expr expression",
     "Literal  : Object value",
     "Logical  : Expr left, Token operator_, Expr right",
-    "Unary    : Token operator_, Expr right",
-    "Variable : Token name"
+    "Unary    : Token operator, Expr right",
+    "Var : Token name"
 ])
 
 define_ast("Stmt", [

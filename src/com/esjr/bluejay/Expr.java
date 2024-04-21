@@ -5,13 +5,14 @@ import java.util.*;
 abstract class Expr {
     public interface Visitor<T> {
         T visit(Assign expr);
+        T visit(Attr expr);
         T visit(Binary expr);
         T visit(Call expr);
         T visit(Grouping expr);
         T visit(Literal expr);
         T visit(Logical expr);
         T visit(Unary expr);
-        T visit(Variable expr);
+        T visit(Var expr);
     }
 
     static class Assign extends Expr {
@@ -29,10 +30,25 @@ abstract class Expr {
         public final Expr value;
     }
 
+    static class Attr extends Expr {
+        Attr(Expr expr, Token name) {
+            this.expr = expr;
+            this.name = name;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Expr expr;
+        public final Token name;
+    }
+
     static class Binary extends Expr {
-        Binary(Expr left, Token operator_, Expr right) {
+        Binary(Expr left, Token operator, Expr right) {
             this.left = left;
-            this.operator_ = operator_;
+            this.operator = operator;
             this.right = right;
         }
 
@@ -42,14 +58,13 @@ abstract class Expr {
         }
 
         public final Expr left;
-        public final Token operator_;
+        public final Token operator;
         public final Expr right;
     }
 
     static class Call extends Expr {
-        Call(Expr callee, Token paren, List<Expr> arguments) {
+        Call(Expr callee, List<Expr> arguments) {
             this.callee = callee;
-            this.paren = paren;
             this.arguments = arguments;
         }
 
@@ -59,7 +74,6 @@ abstract class Expr {
         }
 
         public final Expr callee;
-        public final Token paren;
         public final List<Expr> arguments;
     }
 
@@ -107,8 +121,8 @@ abstract class Expr {
     }
 
     static class Unary extends Expr {
-        Unary(Token operator_, Expr right) {
-            this.operator_ = operator_;
+        Unary(Token operator, Expr right) {
+            this.operator = operator;
             this.right = right;
         }
 
@@ -117,12 +131,12 @@ abstract class Expr {
             return visitor.visit(this);
         }
 
-        public final Token operator_;
+        public final Token operator;
         public final Expr right;
     }
 
-    static class Variable extends Expr {
-        Variable(Token name) {
+    static class Var extends Expr {
+        Var(Token name) {
             this.name = name;
         }
 

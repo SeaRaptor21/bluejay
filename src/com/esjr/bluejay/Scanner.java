@@ -13,9 +13,9 @@ class Scanner {
     private static final Map<String, TokenType> keywords;
     private static final Set<TokenType> implicitContinuation = Set.of(
         EOS,
-        COMMA, DOT, MINUS, PLUS, SLASH, STAR,
-        BANG, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
-        AND, CLASS, ELSE, FUN, FOR, IF, OR, VAR, WHILE
+        COMMA, DOT, MINUS, PLUS, SLASH, STAR, STAR_STAR, PERCENT, EQUAL,
+        BANG, BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+        AND, CLASS, ELSE, FUNC, FOR, IF, NOT, OR, VAR, WHILE, XOR
         /*  NOTE: Keywords are put in here. 
             This allows things such as:
             ```
@@ -33,9 +33,10 @@ class Scanner {
         keywords.put("else",   ELSE);
         keywords.put("false",  FALSE);
         keywords.put("for",    FOR);
-        keywords.put("fun",    FUN);
+        keywords.put("func",   FUNC);
         keywords.put("if",     IF);
-        keywords.put("nil",    NIL);
+        keywords.put("not",    NOT);
+        keywords.put("null",   NULL);
         keywords.put("or",     OR);
         keywords.put("print",  PRINT);
         keywords.put("return", RETURN);
@@ -44,6 +45,7 @@ class Scanner {
         keywords.put("true",   TRUE);
         keywords.put("var",    VAR);
         keywords.put("while",  WHILE);
+        keywords.put("xor",    XOR);
     }
 
 
@@ -95,9 +97,12 @@ class Scanner {
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
             case '-': addToken(MINUS); break;
+            case '%': addToken(PERCENT); break;
             case '+': addToken(PLUS); break;
             case ';': addToken(EOS); break;
-            case '*': addToken(STAR); break; 
+            case '*':
+                addToken(match('*') ? STAR_STAR : STAR);
+                break; 
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -124,7 +129,7 @@ class Scanner {
                 break;
             case '\n':
                 line++;
-                if (!grouping>0 && !tokens.isEmpty() && !implicitContinuation.contains(tokens.get(tokens.size()-1).type)) {
+                if (!(grouping>0) && !tokens.isEmpty() && !implicitContinuation.contains(tokens.get(tokens.size()-1).type)) {
                     addToken(EOS);
                 }
                 break;
