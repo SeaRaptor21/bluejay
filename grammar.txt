@@ -10,13 +10,13 @@ foreach -> "foreach" "(" "var" ID "in" expr ")" stmt;
 repeat -> "repeat" "(" expr ")" stmt;
 break -> "break" expr EOS;
 return -> "return" expr EOS;
-var -> "var" ID ("=" | "+=" | "-=" | "*=" | "/=" | "**=" | "%=") expr EOS;
+var -> "var" ID "=" expr EOS;
 func -> "func" ID "(" params? ")" block;
 class -> "class" ID (":" ID ("," ID)*)? "{" (ID "(" params? ")" block)* "}";
 import -> "import" ID ("from" STR)? EOS;
 
 expr -> assign | or;
-assign -> ID "=" expr;
+assign -> ID (("=" | "+=" | "-=" | "*=" | "/=" | "**=" | "%=") expr | "++" | "--");
 or -> and (("or" | "xor") and)*;
 and -> not ("and" not)*;
 not -> "not" not | equal;
@@ -26,8 +26,8 @@ term -> factor (("-" | "+") factor)*;
 factor -> pow (("/" | "*" | "%") pow)*;
 pow -> unary ("**" unary)*
 unary -> ("!" | "-") unary | call;
-call -> primary ("(" args? ")" | "." ID)*;
-primary -> "true" | "false" | "null" | "this" | NUM | STR | ID | "(" expr ")" | "[" (expr ("," expr)*)? "]" | "{" (expr ":" expr ("," expr ":" expr)*) "}";
+call -> primary ("(" args? ")" | "." ID | "[" expr "]")*;
+primary -> "true" | "false" | "null" | "this" | NUM | STR | ID | "(" expr ")" | "[" (expr ("," expr)*)? "]" | "{" (expr ":" expr ("," expr ":" expr)*)? "}";
 
 args -> expr ("," expr)*;
 params -> ID ("=" expr)? ("," ID ("=" expr)?)*;

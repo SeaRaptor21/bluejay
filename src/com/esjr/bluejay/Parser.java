@@ -25,7 +25,7 @@ class Parser {
     private Stmt statement() {
         // This function corresponds to the `stmt` rule in the grammar.
         try {
-            // Add all other rules above this, for example `if match(IF) return ifStmt();`
+            if (match(LEFT_BRACE)) return block();
             return exprStmt();
         } catch (ParseError e) {
             // Go into panic mode if we see an error
@@ -34,9 +34,18 @@ class Parser {
         }
     }
 
+    private Stmt block() {
+        List<Stmt> stmts = new ArrayList<Stmt>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            stmts.add(statement());
+        }
+        consume(RIGHT_BRACE, "Expected closing '}' after block.");
+        return new Stmt.Block(stmts);
+    }
+
     private Stmt exprStmt() {
         Expr expr = expression();
-        consume(EOS, "Expected end of line or semicolon.");
+        consume(EOS, "Expected newline or semicolon to end statement.");
         return new Stmt.Expression(expr);
     }
 
@@ -49,9 +58,10 @@ class Parser {
         // I'm using advance instead of return because we already
         // know these are here from the checks in expression.
         Token name = advance();
-        advance(); // Equal sign
+        Token operator = advance();
+        if (operator.type == PLUS_PLUS || operator.type == MINUS_MINUS) return new Expr.Assign(name, operator, null);
         Expr value = expression();
-        return new Expr.Assign(name, value);
+        return new Expr.Assign(name, operator, value);
     }
 
     private Expr or() {
@@ -146,7 +156,7 @@ class Parser {
 
     private Expr call() {
         Expr expr = primary();
-        while (match(LEFT_PAREN, DOT)) {
+        while (match(LEFT_PAREN, DOT, LEFT_SQUARE)) {
             if (previous().type == LEFT_PAREN) {
                 List<Expr> args = new ArrayList<Expr>();
                 if (!check(RIGHT_PAREN)) {
@@ -157,9 +167,13 @@ class Parser {
                 }
                 consume(RIGHT_PAREN, "Expected ')' after function call.");
                 expr = new Expr.Call(expr, args);
-            } else {
+            } else if (previous().type == DOT) {
                 Token name = consume(ID, "Expected attribute or method name after '.'.");
                 expr = new Expr.Attr(expr, name);
+            } else {
+                Expr index = expression();
+                consume(RIGHT_SQUARE, "Expected closing ']' after index.");
+                expr = new Expr.Index(expr, index);
             }
         }
         return expr;
@@ -178,6 +192,30 @@ class Parser {
             consume(RIGHT_PAREN, "Expected closing ')' after expression.");
             return new Expr.Grouping(expr);
         }
+        if (match(LEFT_SQUARE)) {
+            List<Object> elems = new ArrayList<Object>();
+            if (!check(RIGHT_SQUARE)) {
+                elems.add(expression());
+                while (match(COMMA)) {
+                    elems.add(expression());
+                }
+            }
+            consume(RIGHT_SQUARE, "Expected ']' after list elements.");
+            return new Expr.List(elems);
+        }
+        if (match(LEFT_BRACE)) {
+            List<Object> keys = new ArrayList<Object>();
+            List<Object> vals = new ArrayList<Object>();
+            if (!check(RIGHT_BRACE)) {
+                do {
+                    keys.add(expression());
+                    consume(COLON, "Expected ':' after dictionary key.");
+                    vals.add(expression());
+                } while (match(COMMA))
+            }
+            consume(RIGHT_BRACE, "Expected '}' after dictionary elements.");
+            return new Expr.Dict(keys, vals);
+        }
         throw error(peek(), "Expression expected.");
     }
 
@@ -189,7 +227,7 @@ class Parser {
         code.
         
         To do this, we get back to a spot where we know we can't
-        trigger a phantom error -- the start of a statement! So
+        trigger a phantom error -- the start of a new statement. So
         we just advance until we see either a semicolon or a token
         we know starts a statement. This way, we find as many errors
         as possible without creating phantoms. */
@@ -222,13 +260,13 @@ class Parser {
         return peek().type == type;
     }
 
-    private boolean checkNext(TokenType type) {
-        return checkNext(type, 1);
+    private boolean checkNext(TokenType... types) {
+        return checkNext(types, 1);
     }
 
-    private boolean checkNext(TokenType type, int amount) {
+    private boolean checkNext(TokenType... types, int amount) {
         if (isAtEnd()) return false;
-        return peekNext(amount).type == type;
+        return Arrays.asList(types).contains(peekNext(amount).type);
     }
 
     private Token advance() {
