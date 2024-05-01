@@ -44,6 +44,8 @@ public class Bluejay {
 
         Parser parser = new Parser(tokens);
         List<Stmt> stmts = parser.parse();
+
+        if (hadError) return;
     }
 
     static void error(int pos, String message) {
@@ -67,7 +69,7 @@ public class Bluejay {
             lines = source.substring(0,pos+1).split("\n");
         }
         int col = lines[lines.length-1].length();
-        System.err.println("Error" + where + ": " + message + "\n    " + line + " | " + source.split("\n")[line-1] + "\n       " + " ".repeat(col) + "^-- Here.");
+        System.err.println(AnsiColors.RED + "Error" + where + ": " + message + AnsiColors.BLUE + "\n" + line + " | " + AnsiColors.RESET + source.split("\n")[line-1] + "\n   " + " ".repeat(col) + AnsiColors.BLUE +  "^-- Here." + AnsiColors.RESET);
         hadError = true;
     }
 }

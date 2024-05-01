@@ -26,12 +26,29 @@ class Parser {
         // This function corresponds to the `stmt` rule in the grammar.
         try {
             if (match(LEFT_BRACE)) return block();
+            if (match(IF)) return ifStmt();
+            if (match(WHILE)) return whileStmt();
+            if (match(FOR)) return forStmt();
+            if (match(FOREACH)) return foreachStmt();
+            if (match(REPEAT)) return repeatStmt();
+            if (match(BREAK)) return breakStmt();
+            if (match(RETURN)) return returnStmt();
+            if (match(VAR)) return varStmt();
+            if (match(FUNC)) return functionStmt();
+            if (match(CLASS)) return classStmt();
+            if (match(IMPORT)) return importStmt();
             return exprStmt();
         } catch (ParseError e) {
             // Go into panic mode if we see an error
             synchronize();
             return null;
         }
+    }
+
+    private Stmt exprStmt() {
+        Expr expr = expression();
+        consume(EOS, "Expected newline or semicolon to end statement.");
+        return new Stmt.Expression(expr);
     }
 
     private Stmt block() {
@@ -43,12 +60,192 @@ class Parser {
         return new Stmt.Block(stmts);
     }
 
-    private Stmt exprStmt() {
-        Expr expr = expression();
-        consume(EOS, "Expected newline or semicolon to end statement.");
-        return new Stmt.Expression(expr);
+    private Stmt ifStmt() {
+        consume(LEFT_PAREN, "Expected '(' after 'if'.");
+        Expr cond = expression();
+        consume(RIGHT_PAREN, "Expected ')' after if condition.");
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+        return new Stmt.If(cond, thenBranch, elseBranch);
     }
 
+    private Stmt whileStmt() {
+        consume(LEFT_PAREN, "Expected '(' after 'while'.");
+        Expr cond = expression();
+        consume(RIGHT_PAREN, "Expected ')' after while condition.");
+        Stmt stmt = statement();
+        return new Stmt.While(cond, stmt);
+    }
+
+    private Stmt forStmt() {
+        // There's probably a whole host of bugs here
+        // because I'm checking for a semicolon specifically,
+        // but I want to get this to you fast.
+        consume(LEFT_PAREN, "Expected '(' after 'for'.");
+        Stmt init = null;
+        if (match(VAR)) {
+            init = varStmt();
+        } else if (matchSemicolon()) {
+            init = null;
+        } else {
+            init = exprStmt();
+        }
+        Expr cond = null;
+        if (!checkSemicolon()) {
+            cond = expression();
+        }
+        consumeSemicolon();
+        Expr inc = null;
+        if (!check(RIGHT_PAREN)) {
+            inc = expression();
+        }
+        consume(RIGHT_PAREN, "Expected ')' after for increment expression.");
+        Stmt stmt = statement();
+        /* This is our first example of desugaring!
+
+        As you know, a for loop can easily be rewritten
+        as a while loop, and that the for syntax is merely
+        syntactic sugar. So instead of worrying about for
+        loops inside of the interpreter, they're often handled
+        directly in the parser. To do this, all we have to do
+        is create that while loop that the for loop describes;
+        in other words, we need to go from
+        ```
+        for (<init>; <cond>; <inc>) <body>
+        ```
+        to 
+        ```
+        {
+            <init>;
+            while (<cond>) {
+                <body>
+                <inc>
+            }
+        }
+        ```
+        This way we don't need to add anything to the interpreter.
+        Look closely at the following 2 lines to see an example
+        of how this works.
+        */
+        Stmt block = new Stmt.Block(Arrays.asList(stmt, new Stmt.Expression(inc)));
+        return new Stmt.Block(Arrays.asList(init, new Stmt.While(cond, block)));
+    }
+
+    private Stmt foreachStmt() {
+        consume(LEFT_PAREN, "Expected '(' after 'foreach'.");
+        consume(VAR, "Expected 'var' inside foreach loop.");
+        Token loopVar = consume(ID, "Expected loop variable name.");
+        consume(IN, "Expected 'in' after loop variable name.");
+        Expr expr = expression();
+        consume(RIGHT_PAREN, "Expected ')' after foreach expression.");
+        Stmt body = statement();
+        return new Stmt.Foreach(loopVar, expr, body);
+    }
+
+    private Stmt repeatStmt() {
+        consume(LEFT_PAREN, "Expected '(' after 'repeat'.");
+        Expr amount = expression();
+        consume(RIGHT_PAREN, "Expected ')' after repeat amount.");
+        Stmt body = statement();
+        return new Stmt.Repeat(amount, body);
+    }
+
+    private Stmt breakStmt() {
+        Token kwd = previous();
+        if (match(EOS)) {
+            return new Stmt.Break(kwd, null);
+        }
+        Expr amount = expression();
+        consume(EOS, "Expected neweline or semicolon after break statement.");
+        return new Stmt.Break(kwd, amount);
+    }
+
+    private Stmt returnStmt() {
+        Token kwd = previous();
+        if (match(EOS)) {
+            return new Stmt.Return(kwd, null);
+        }
+        Expr expr = expression();
+        consume(EOS, "Expected neweline or semicolon after return statement.");
+        return new Stmt.Return(kwd, expr);
+    }
+
+    private Stmt varStmt() {
+        Token name = consume(ID, "Expected vaiable name.");
+        Expr init = null;
+        if (match(EQUAL)) {
+            init = expression();
+        }
+        consume(EOS, "Expected newline or semicolon after variable declaration.");
+        return new Stmt.Var(name, init);
+    }
+
+    private Stmt functionStmt() {
+        Token name = consume(ID, "Expected function name.");
+        consume(LEFT_PAREN, "Expected '(' after function name.");
+        Map<Token,Object> params = new HashMap<Token,Object>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                Token param = consume(ID, "Expected parameter name.");
+                Object defalt = null;
+                if (match(EQUAL)) {
+                    defalt = expression();
+                }
+                params.put(param,defalt);
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expected ')' after function parameters.");
+        consume(LEFT_BRACE, "Expected '{' for block after function parameters.");
+        Stmt body = block();
+        return new Stmt.Function(name, params, body);
+    }
+
+    private Stmt classStmt() {
+        Token name = consume(ID, "Expected class name.");
+        List<Token> inherits = new ArrayList<Token>();
+        if (match(COLON)) {
+            do {
+                Token inherit = consume(ID, "Expected name of inherited class.");
+                inherits.add(inherit);
+            } while (match(COMMA));
+        }
+        consume(LEFT_BRACE, "Expected '{' after class name.");
+        List<Stmt> mthds = new ArrayList<Stmt>();
+        while (!check(RIGHT_BRACE)) {
+            Token mthdName = consume(ID, "Expected method name.");
+            Map<Token,Object> params = new HashMap<Token,Object>();
+            if (!check(RIGHT_PAREN)) {
+                do {
+                    Token param = consume(ID, "Expected parameter name.");
+                    Object defalt = null;
+                    if (match(EQUAL)) {
+                        defalt = expression();
+                    }
+                    params.put(param,defalt);
+                } while (match(COMMA));
+            }
+            consume(RIGHT_PAREN, "Expected ')' after method parameters.");
+            consume(LEFT_BRACE, "Expected '{' for block after method parameters.");
+            Stmt body = block();
+            mthds.add(new Stmt.Method(mthdName, params, body));
+        }
+        consume(RIGHT_BRACE, "Expected '}' after class body.");
+        return new Stmt.Class(name, inherits, mthds);
+    }
+
+    private Stmt importStmt() {
+        Token modName = consume(ID, "Expected module name.");
+        Token from = null;
+        if (match(FROM)) {
+            from = consume(STR, "Expected string to import from. (path or URI)");
+        }
+        consume(EOS, "Expected newline or semicolon after import statement.");
+        return new Stmt.Import(modName, from);
+    }
+    
     private Expr expression() {
         if (check(ID) && checkNext(EQUAL)) return assign();
         return or();
@@ -193,7 +390,7 @@ class Parser {
             return new Expr.Grouping(expr);
         }
         if (match(LEFT_SQUARE)) {
-            List<Object> elems = new ArrayList<Object>();
+            List<Expr> elems = new ArrayList<Expr>();
             if (!check(RIGHT_SQUARE)) {
                 elems.add(expression());
                 while (match(COMMA)) {
@@ -201,17 +398,17 @@ class Parser {
                 }
             }
             consume(RIGHT_SQUARE, "Expected ']' after list elements.");
-            return new Expr.List(elems);
+            return new Expr.ListLiteral(elems);
         }
         if (match(LEFT_BRACE)) {
-            List<Object> keys = new ArrayList<Object>();
-            List<Object> vals = new ArrayList<Object>();
+            List<Expr> keys = new ArrayList<Expr>();
+            List<Expr> vals = new ArrayList<Expr>();
             if (!check(RIGHT_BRACE)) {
                 do {
                     keys.add(expression());
                     consume(COLON, "Expected ':' after dictionary key.");
                     vals.add(expression());
-                } while (match(COMMA))
+                } while (match(COMMA));
             }
             consume(RIGHT_BRACE, "Expected '}' after dictionary elements.");
             return new Expr.Dict(keys, vals);
@@ -261,10 +458,10 @@ class Parser {
     }
 
     private boolean checkNext(TokenType... types) {
-        return checkNext(types, 1);
+        return checkNext(1, types);
     }
 
-    private boolean checkNext(TokenType... types, int amount) {
+    private boolean checkNext(int amount, TokenType... types) {
         if (isAtEnd()) return false;
         return Arrays.asList(types).contains(peekNext(amount).type);
     }
@@ -297,6 +494,24 @@ class Parser {
     private Token consume(TokenType type, String message) {
         if (check(type)) return advance();
         throw error(peek(), message);
+    }
+
+    private Token consumeSemicolon() {
+        if (check(EOS) && peek().lexeme == ";") return advance();
+        throw error(peek(), "Expected ';'.");
+    }
+
+    private boolean checkSemicolon() {
+        if (isAtEnd()) return false;
+        return check(EOS) && peek().lexeme == ";";
+    }
+
+    private boolean matchSemicolon() {
+        if (check(EOS) && peek().lexeme == ";") {
+            advance();
+            return true;
+        }
+        return false;
     }
 
     private ParseError error(Token token, String message) {

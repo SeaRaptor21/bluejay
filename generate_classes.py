@@ -51,24 +51,32 @@ def define_ast(base_name, types):
 # These are left over from the C# version.
 
 define_ast("Expr", [
-    "Assign   : Token name, Expr value",
-    "Attr     : Expr expr, Token name",
-    "Binary   : Expr left, Token operator, Expr right",
-    "Call     : Expr callee, List<Expr> arguments",
-    "Grouping : Expr expression",
-    "Literal  : Object value",
-    "Logical  : Expr left, Token operator_, Expr right",
-    "Unary    : Token operator, Expr right",
-    "Var : Token name"
+    "Assign      : Token name, Token operator, Expr value",
+    "Attr        : Expr expr, Token name",
+    "Binary      : Expr left, Token operator, Expr right",
+    "Call        : Expr callee, List<Expr> arguments",
+    "Dict        : List<Expr> keys, List<Expr> values",
+    "Grouping    : Expr expression",
+    "Index       : Expr expr, Expr index",
+    "ListLiteral : List<Expr> elements",
+    "Literal     : Object value",
+    "Logical     : Expr left, Token operator_, Expr right",
+    "Unary       : Token operator, Expr right",
+    "Var         : Token name"
 ])
 
 define_ast("Stmt", [
     "Block      : List<Stmt> statements",
-    "Break      : Token token, Expr value",
+    "Break      : Token keyword, Expr value",
+    "Class      : Token name, List<Token> inherits, List<Stmt> methods",
     "Expression : Expr expression",
-    "Function   : Token name, List<Token> parameters, List<Stmt> body",
+    "Foreach    : Token loopVar, Expr iter, Stmt body",
+    "Function   : Token name, Map<Token,Object> parameters, Stmt body",
     "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
+    "Import     : Token name, Token from",
+    "Method     : Token name, Map<Token,Object> parameters, Stmt body",
     "Print      : Expr expression",
+    "Repeat     : Expr amount, Stmt body",
     "Return     : Token keyword, Expr value",
     "Var        : Token name, Expr initializer",
     "While      : Expr condition, Stmt body"

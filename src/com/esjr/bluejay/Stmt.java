@@ -6,10 +6,15 @@ abstract class Stmt {
     public interface Visitor<T> {
         T visit(Block stmt);
         T visit(Break stmt);
+        T visit(Class stmt);
         T visit(Expression stmt);
+        T visit(Foreach stmt);
         T visit(Function stmt);
         T visit(If stmt);
+        T visit(Import stmt);
+        T visit(Method stmt);
         T visit(Print stmt);
+        T visit(Repeat stmt);
         T visit(Return stmt);
         T visit(Var stmt);
         T visit(While stmt);
@@ -29,8 +34,8 @@ abstract class Stmt {
     }
 
     static class Break extends Stmt {
-        Break(Token token, Expr value) {
-            this.token = token;
+        Break(Token keyword, Expr value) {
+            this.keyword = keyword;
             this.value = value;
         }
 
@@ -39,8 +44,25 @@ abstract class Stmt {
             return visitor.visit(this);
         }
 
-        public final Token token;
+        public final Token keyword;
         public final Expr value;
+    }
+
+    static class Class extends Stmt {
+        Class(Token name, List<Token> inherits, List<Stmt> methods) {
+            this.name = name;
+            this.inherits = inherits;
+            this.methods = methods;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Token name;
+        public final List<Token> inherits;
+        public final List<Stmt> methods;
     }
 
     static class Expression extends Stmt {
@@ -56,8 +78,25 @@ abstract class Stmt {
         public final Expr expression;
     }
 
+    static class Foreach extends Stmt {
+        Foreach(Token loopVar, Expr iter, Stmt body) {
+            this.loopVar = loopVar;
+            this.iter = iter;
+            this.body = body;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Token loopVar;
+        public final Expr iter;
+        public final Stmt body;
+    }
+
     static class Function extends Stmt {
-        Function(Token name, List<Token> parameters, List<Stmt> body) {
+        Function(Token name, Map<Token,Object> parameters, Stmt body) {
             this.name = name;
             this.parameters = parameters;
             this.body = body;
@@ -69,8 +108,8 @@ abstract class Stmt {
         }
 
         public final Token name;
-        public final List<Token> parameters;
-        public final List<Stmt> body;
+        public final Map<Token,Object> parameters;
+        public final Stmt body;
     }
 
     static class If extends Stmt {
@@ -90,6 +129,38 @@ abstract class Stmt {
         public final Stmt elseBranch;
     }
 
+    static class Import extends Stmt {
+        Import(Token name, Token from) {
+            this.name = name;
+            this.from = from;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Token name;
+        public final Token from;
+    }
+
+    static class Method extends Stmt {
+        Method(Token name, Map<Token,Object> parameters, Stmt body) {
+            this.name = name;
+            this.parameters = parameters;
+            this.body = body;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Token name;
+        public final Map<Token,Object> parameters;
+        public final Stmt body;
+    }
+
     static class Print extends Stmt {
         Print(Expr expression) {
             this.expression = expression;
@@ -101,6 +172,21 @@ abstract class Stmt {
         }
 
         public final Expr expression;
+    }
+
+    static class Repeat extends Stmt {
+        Repeat(Expr amount, Stmt body) {
+            this.amount = amount;
+            this.body = body;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Expr amount;
+        public final Stmt body;
     }
 
     static class Return extends Stmt {
