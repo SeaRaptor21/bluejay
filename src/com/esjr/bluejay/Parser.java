@@ -1,5 +1,6 @@
 package com.esjr.bluejay;
 
+import java.lang.*; 
 import java.util.*;
 import static com.esjr.bluejay.TokenType.*;
 
@@ -18,6 +19,10 @@ class Parser {
         List<Stmt> stmts = new ArrayList<Stmt>();
         while (!isAtEnd()) {
             stmts.add(statement());
+            // Get rid of any unneccisary newlines that could cause problems.
+            while (check(EOS) && (peek().lexeme.contains(System.getProperty("line.separator")) || peek().lexeme == "")) {
+                advance();
+            }
         }
         return stmts;
     }
@@ -57,6 +62,8 @@ class Parser {
             stmts.add(statement());
         }
         consume(RIGHT_BRACE, "Expected closing '}' after block.");
+        // Eat any newlines that could cause problems later.
+        eatNewlines();
         return new Stmt.Block(stmts);
     }
 
@@ -216,6 +223,7 @@ class Parser {
         List<Stmt> mthds = new ArrayList<Stmt>();
         while (!check(RIGHT_BRACE)) {
             Token mthdName = consume(ID, "Expected method name.");
+            consume(LEFT_PAREN, "Expected '(' after method name.");
             Map<Token,Object> params = new HashMap<Token,Object>();
             if (!check(RIGHT_PAREN)) {
                 do {
@@ -233,6 +241,8 @@ class Parser {
             mthds.add(new Stmt.Method(mthdName, params, body));
         }
         consume(RIGHT_BRACE, "Expected '}' after class body.");
+        // Same as block, eat up EOSs that could break latter code.
+        eatNewlines();
         return new Stmt.Class(name, inherits, mthds);
     }
 
@@ -247,18 +257,43 @@ class Parser {
     }
     
     private Expr expression() {
-        if (check(ID) && checkNext(EQUAL)) return assign();
-        return or();
+        return assign();
     }
 
-    private Expr.Assign assign() {
-        // I'm using advance instead of return because we already
-        // know these are here from the checks in expression.
-        Token name = advance();
-        Token operator = advance();
-        if (operator.type == PLUS_PLUS || operator.type == MINUS_MINUS) return new Expr.Assign(name, operator, null);
-        Expr value = expression();
-        return new Expr.Assign(name, operator, value);
+    private Expr assign() {
+        /* The reason we don't desugar x+=1 to x=x+1 is because
+        as in Python, we may want to have different functionality for +=
+        than we have for + (consider a basic object that just holds an int.
+        if we want to add two together, we might create a new object with
+        the sum of our first two, but if we're using +=, we might just update
+        in place to reduce the number of objects created). */
+        Expr expr = or();
+        if (match(EQUAL,PLUS_EQUAL,MINUS_EQUAL,STAR_EQUAL,SLASH_EQUAL,STAR_STAR_EQUAL,PERCENT_EQUAL)) {
+            Token equals = previous();
+            Expr value = assign();
+            if (expr instanceof Expr.Var) {
+                Token name = ((Expr.Var)expr).name;
+                return new Expr.Assign(name, equals, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr thing = ((Expr.Get)expr).expr;
+                Token name = ((Expr.Get)expr).name;
+                return new Expr.Set(thing, name, equals, value);
+            }
+            error(equals, "Invalid assignment target."); 
+        } else if (match(PLUS_PLUS,MINUS_MINUS)) {
+            Token equals = previous();
+            Expr value = null;
+            if (expr instanceof Expr.Var) {
+                Token name = ((Expr.Var)expr).name;
+                return new Expr.Assign(name, equals, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr thing = ((Expr.Get)expr).expr;
+                Token name = ((Expr.Get)expr).name;
+                return new Expr.Set(thing, name, equals, value);
+            }
+            error(equals, "Invalid target for '" + equals.lexeme + "'.");
+        }
+        return expr;
     }
 
     private Expr or() {
@@ -366,7 +401,7 @@ class Parser {
                 expr = new Expr.Call(expr, args);
             } else if (previous().type == DOT) {
                 Token name = consume(ID, "Expected attribute or method name after '.'.");
-                expr = new Expr.Attr(expr, name);
+                expr = new Expr.Get(expr, name);
             } else {
                 Expr index = expression();
                 consume(RIGHT_SQUARE, "Expected closing ']' after index.");
@@ -397,7 +432,7 @@ class Parser {
                     elems.add(expression());
                 }
             }
-            consume(RIGHT_SQUARE, "Expected ']' after list elements.");
+            consume(RIGHT_SQUARE, "Expected ',' or ']' after list elements.");
             return new Expr.ListLiteral(elems);
         }
         if (match(LEFT_BRACE)) {
@@ -410,7 +445,7 @@ class Parser {
                     vals.add(expression());
                 } while (match(COMMA));
             }
-            consume(RIGHT_BRACE, "Expected '}' after dictionary elements.");
+            consume(RIGHT_BRACE, "Expected ',' or '}' after dictionary elements.");
             return new Expr.Dict(keys, vals);
         }
         throw error(peek(), "Expression expected.");
@@ -431,7 +466,7 @@ class Parser {
 
         advance();
         while (!isAtEnd()) {
-            if (previous().type == EOS) return;
+            if (previous().type == EOS && tokens.get(current - 2).type != RIGHT_BRACE) return;
             switch (peek().type) {
                 // add cases for every token we know starts a statement (IF, WHILE, etc.)
                     // return;
@@ -472,7 +507,7 @@ class Parser {
     }
 
     private boolean isAtEnd() {
-        return peek().type == EOF;
+        return peek().type == EOF; //|| ((peek().type == EOS) && (peek().lexeme == "") && (peekNext().type == EOS));
     }
 
     private Token peek() {
@@ -512,6 +547,20 @@ class Parser {
             return true;
         }
         return false;
+    }
+
+    private boolean matchNewline() {
+        if (check(EOS) && peek().lexeme.contains(System.getProperty("line.separator"))) {
+            advance();
+            return true;
+        }
+        return false;
+    }
+
+    private void eatNewlines() {
+        while (check(EOS) && peek().lexeme.contains(System.getProperty("line.separator"))) {
+            advance();
+        }
     }
 
     private ParseError error(Token token, String message) {

@@ -23,12 +23,14 @@ public class Bluejay {
         BufferedReader reader = new BufferedReader(input);
 
         while (true) { 
-            System.out.print(">>> ");
+            System.out.print(AnsiColors.BLUE + ">>> " + AnsiColors.RESET);
             String line = reader.readLine();
             if (line == null) break;
             run(line);
             hadError = false;
         }
+
+        System.out.println();
     }
 
     private static void run(String src) {
@@ -36,16 +38,21 @@ public class Bluejay {
         Scanner scanner = new Scanner(src);
         List<Token> tokens = scanner.scanTokens();
 
-        if (hadError) return;
+        if (hadError || tokens.size() <= 0) return;
 
-        for (Token t : tokens) {
-            System.out.println(t.toString());
-        }
+        // for (Token t : tokens) {
+        //     System.out.println(t.toString());
+        // }
 
         Parser parser = new Parser(tokens);
         List<Stmt> stmts = parser.parse();
 
         if (hadError) return;
+
+        AstPrinter printer = new AstPrinter();
+        for (Stmt stmt : stmts) {
+            System.out.println(printer.visit(stmt));
+        }
     }
 
     static void error(int pos, String message) {
@@ -53,10 +60,10 @@ public class Bluejay {
     }
 
     static void error(Token token, String message) {
-        if (token.type == TokenType.EOF) {
+        if (token.type == TokenType.EOF || token.type == TokenType.EOS && token.lexeme == "") {
             report(token.pos, " at end", message);
         } else {
-            report(token.pos, " at '" + token.lexeme + "'", message);
+            report(token.pos, " at '" + token.lexeme.replace("\n","\\n") + "'", message);
         }
     }
 

@@ -15,8 +15,8 @@ func -> "func" ID "(" params? ")" block;
 class -> "class" ID (":" ID ("," ID)*)? "{" (ID "(" params? ")" block)* "}";
 import -> "import" ID ("from" STR)? EOS;
 
-expr -> assign | or;
-assign -> ID (("=" | "+=" | "-=" | "*=" | "/=" | "**=" | "%=") expr | "++" | "--");
+expr -> assign;
+assign -> (call ".")? ID (("=" | "+=" | "-=" | "*=" | "/=" | "**=" | "%=") expr | "++" | "--") | or;
 or -> and (("or" | "xor") and)*;
 and -> not ("and" not)*;
 not -> "not" not | equal;

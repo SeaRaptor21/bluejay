@@ -48,11 +48,30 @@ def define_ast(base_name, types):
     with open(f'src/com/esjr/bluejay/{base_name}.java', 'w') as f:
         f.write(res)
 
-# These are left over from the C# version.
+def define_printer(classes):
+    code = '''package com.esjr.bluejay;
 
-define_ast("Expr", [
+import java.util.*;
+import java.util.stream.Collectors;
+
+class AstPrinter implements '''+', '.join(c[0]+'.Visitor<String>' for c in classes)+' {\n    public String visit(Object thing) {\n        if (thing instanceof Expr) return visit((Expr)thing);\n        if (thing instanceof Stmt) return visit((Stmt)thing);\n        return thing.toString();\n    }\n\n    public String visit(List thing) {\n        List<String> elems = new ArrayList<String>();\n        for (Object e : thing) {\n            elems.add(visit(e));\n        }\n        return "["+String.join(", ", elems)+"]";\n    }\n\n'
+    mthds = []
+    for c in classes:
+        mthds.append('    public String visit('+c[0]+' thing) {\n        '+'\n        '.join([
+            'if (thing instanceof '+c[0]+'.'+s.split(':')[0].strip()+') return visit(('+c[0]+'.'+s.split(':')[0].strip()+')thing);' for s in c[1]
+        ])+'\n        return null;\n    }')
+        for s in c[1]:
+            name = s.split(':')[0].strip()
+            atts = [a.strip().split(' ')[1].strip() for a in s.split(':')[1].split(', ')]
+            mthds.append('    public String visit('+c[0]+'.'+name+' thing) {\n        return "'+c[0]+'.'+name+': '+'" + '+' + '.join('"'+a.upper()+'(" + visit(thing.'+a+') + "), "' for a in atts)[:-3]+';";\n    }')
+    code += '\n\n'.join(mthds)+'\n}'
+    with open('src/com/esjr/bluejay/AstPrinter.java','w') as f:
+        f.write(code)
+
+expr = ("Expr", [
     "Assign      : Token name, Token operator, Expr value",
-    "Attr        : Expr expr, Token name",
+    "Get         : Expr expr, Token name",
+    "Set         : Expr expr, Token name, Token operator, Expr value",
     "Binary      : Expr left, Token operator, Expr right",
     "Call        : Expr callee, List<Expr> arguments",
     "Dict        : List<Expr> keys, List<Expr> values",
@@ -65,7 +84,7 @@ define_ast("Expr", [
     "Var         : Token name"
 ])
 
-define_ast("Stmt", [
+stmt = ("Stmt", [
     "Block      : List<Stmt> statements",
     "Break      : Token keyword, Expr value",
     "Class      : Token name, List<Token> inherits, List<Stmt> methods",
@@ -81,3 +100,7 @@ define_ast("Stmt", [
     "Var        : Token name, Expr initializer",
     "While      : Expr condition, Stmt body"
 ])
+
+define_ast(*expr)
+define_ast(*stmt)
+define_printer([expr,stmt])

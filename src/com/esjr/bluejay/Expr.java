@@ -5,7 +5,8 @@ import java.util.*;
 abstract class Expr {
     public interface Visitor<T> {
         T visit(Assign expr);
-        T visit(Attr expr);
+        T visit(Get expr);
+        T visit(Set expr);
         T visit(Binary expr);
         T visit(Call expr);
         T visit(Dict expr);
@@ -35,8 +36,8 @@ abstract class Expr {
         public final Expr value;
     }
 
-    static class Attr extends Expr {
-        Attr(Expr expr, Token name) {
+    static class Get extends Expr {
+        Get(Expr expr, Token name) {
             this.expr = expr;
             this.name = name;
         }
@@ -48,6 +49,25 @@ abstract class Expr {
 
         public final Expr expr;
         public final Token name;
+    }
+
+    static class Set extends Expr {
+        Set(Expr expr, Token name, Token operator, Expr value) {
+            this.expr = expr;
+            this.name = name;
+            this.operator = operator;
+            this.value = value;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Expr expr;
+        public final Token name;
+        public final Token operator;
+        public final Expr value;
     }
 
     static class Binary extends Expr {

@@ -14,6 +14,8 @@ class Scanner {
     private static final Set<TokenType> implicitContinuation = Set.of(
         EOS,
         COMMA, DOT, MINUS, PLUS, SLASH, STAR, STAR_STAR, PERCENT, EQUAL,
+        PLUS_EQUAL, MINUS_EQUAL, STAR_EQUAL, SLASH_EQUAL, STAR_STAR_EQUAL, PERCENT_EQUAL,
+        LEFT_BRACE, LEFT_PAREN, LEFT_SQUARE,
         BANG, BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
         AND, CLASS, ELSE, FUNC, FOR, IF, NOT, OR, VAR, WHILE, XOR
         /*  NOTE: Keywords are put in here. 
@@ -58,7 +60,7 @@ class Scanner {
             scanToken();
         }
 
-        if (tokens.get(tokens.size()-1).type != EOS) {
+        if (tokens.size() > 0 && tokens.get(tokens.size()-1).type != EOS) {
             tokens.add(new Token(EOS, "", null, start));
         }
 
@@ -95,12 +97,18 @@ class Scanner {
                 break;
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '%': addToken(PERCENT); break;
-            case '+': addToken(PLUS); break;
+            case '-':
+                addToken(match('-') ? MINUS_MINUS : (match('=') ? MINUS_EQUAL : MINUS));
+                break;
+            case '%':
+                addToken(match('=') ? PERCENT_EQUAL : PERCENT);
+                break;
+            case '+':
+                addToken(match('+') ? PLUS_PLUS : (match('=') ? PLUS_EQUAL : PLUS));
+                break;
             case ';': addToken(EOS); break;
             case '*':
-                addToken(match('*') ? STAR_STAR : STAR);
+                addToken(match('*') ? (match('=') ? STAR_STAR_EQUAL : STAR_STAR) : (match('=') ? STAR_EQUAL : STAR));
                 break; 
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
@@ -118,9 +126,10 @@ class Scanner {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else {
-                    addToken(SLASH);
+                    addToken(match('=') ? SLASH_EQUAL : SLASH);
                 }
                 break;
+            case ':': addToken(COLON); break;
             case '"': string(); break;
             case ' ':
             case '\r':

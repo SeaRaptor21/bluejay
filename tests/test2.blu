@@ -1,0 +1,11 @@
+class Test {
+    Test(v) {
+        this.value = v;
+    }
+    
+    add(other) {
+        return this.value+other.value;
+    }
+}
+
+print(Test(5).add(Test(7)))
