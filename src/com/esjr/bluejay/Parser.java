@@ -153,11 +153,11 @@ class Parser {
     }
 
     private Stmt repeatStmt() {
-        consume(LEFT_PAREN, "Expected '(' after 'repeat'.");
+        Token paren = consume(LEFT_PAREN, "Expected '(' after 'repeat'.");
         Expr amount = expression();
         consume(RIGHT_PAREN, "Expected ')' after repeat amount.");
         Stmt body = statement();
-        return new Stmt.Repeat(amount, body);
+        return new Stmt.Repeat(paren, amount, body);
     }
 
     private Stmt breakStmt() {
@@ -193,7 +193,7 @@ class Parser {
     private Stmt functionStmt() {
         Token name = consume(ID, "Expected function name.");
         consume(LEFT_PAREN, "Expected '(' after function name.");
-        Map<Token,Object> params = new HashMap<Token,Object>();
+        LinkedHashMap<Token,Object> params = new LinkedHashMap<Token,Object>();
         if (!check(RIGHT_PAREN)) {
             do {
                 Token param = consume(ID, "Expected parameter name.");
@@ -212,11 +212,11 @@ class Parser {
 
     private Stmt classStmt() {
         Token name = consume(ID, "Expected class name.");
-        List<Token> inherits = new ArrayList<Token>();
+        List<Expr.Var> inherits = new ArrayList<Expr.Var>();
         if (match(COLON)) {
             do {
                 Token inherit = consume(ID, "Expected name of inherited class.");
-                inherits.add(inherit);
+                inherits.add(new Expr.Var(inherit));
             } while (match(COMMA));
         }
         consume(LEFT_BRACE, "Expected '{' after class name.");
@@ -224,7 +224,7 @@ class Parser {
         while (!check(RIGHT_BRACE)) {
             Token mthdName = consume(ID, "Expected method name.");
             consume(LEFT_PAREN, "Expected '(' after method name.");
-            Map<Token,Object> params = new HashMap<Token,Object>();
+            LinkedHashMap<Token,Object> params = new LinkedHashMap<Token,Object>();
             if (!check(RIGHT_PAREN)) {
                 do {
                     Token param = consume(ID, "Expected parameter name.");
@@ -390,6 +390,7 @@ class Parser {
         Expr expr = primary();
         while (match(LEFT_PAREN, DOT, LEFT_SQUARE)) {
             if (previous().type == LEFT_PAREN) {
+                Token paren = previous();
                 List<Expr> args = new ArrayList<Expr>();
                 if (!check(RIGHT_PAREN)) {
                     args.add(expression());
@@ -398,7 +399,7 @@ class Parser {
                     }
                 }
                 consume(RIGHT_PAREN, "Expected ')' after function call.");
-                expr = new Expr.Call(expr, args);
+                expr = new Expr.Call(expr, paren, args);
             } else if (previous().type == DOT) {
                 Token name = consume(ID, "Expected attribute or method name after '.'.");
                 expr = new Expr.Get(expr, name);
@@ -412,9 +413,9 @@ class Parser {
     }
 
     private Expr primary() {
-        if (match(TRUE)) return new Expr.Literal(true);
-        if (match(FALSE)) return new Expr.Literal(false);
-        if (match(NULL)) return new Expr.Literal(null);
+        if (match(TRUE)) return new Expr.Literal(new Value.Boolean(true));
+        if (match(FALSE)) return new Expr.Literal(new Value.Boolean(false));
+        if (match(NULL)) return new Expr.Literal(new Value.Null());
         if (match(THIS, ID)) return new Expr.Var(previous());
         if (match(NUM, STR)) {
             return new Expr.Literal(previous().literal);

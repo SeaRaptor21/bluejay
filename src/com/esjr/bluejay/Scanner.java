@@ -30,23 +30,28 @@ class Scanner {
 
     static {
         keywords = new HashMap<>();
-        keywords.put("and",    AND);
-        keywords.put("class",  CLASS);
-        keywords.put("else",   ELSE);
-        keywords.put("false",  FALSE);
-        keywords.put("for",    FOR);
-        keywords.put("func",   FUNC);
-        keywords.put("if",     IF);
-        keywords.put("not",    NOT);
-        keywords.put("null",   NULL);
-        keywords.put("or",     OR);
-        keywords.put("return", RETURN);
-        keywords.put("super",  SUPER);
-        keywords.put("this",   THIS);
-        keywords.put("true",   TRUE);
-        keywords.put("var",    VAR);
-        keywords.put("while",  WHILE);
-        keywords.put("xor",    XOR);
+        keywords.put("and",     AND);
+        keywords.put("break",   BREAK);
+        keywords.put("class",   CLASS);
+        keywords.put("else",    ELSE);
+        keywords.put("false",   FALSE);
+        keywords.put("for",     FOR);
+        keywords.put("foreach", FOREACH);
+        keywords.put("func",    FUNC);
+        keywords.put("if",      IF);
+        keywords.put("import",  IMPORT);
+        keywords.put("in",      IN);
+        keywords.put("not",     NOT);
+        keywords.put("null",    NULL);
+        keywords.put("or",      OR);
+        keywords.put("repeat",  REPEAT);
+        keywords.put("return",  RETURN);
+        keywords.put("super",   SUPER);
+        keywords.put("this",    THIS);
+        keywords.put("true",    TRUE);
+        keywords.put("var",     VAR);
+        keywords.put("while",   WHILE);
+        keywords.put("xor",     XOR);
     }
 
 
@@ -167,7 +172,7 @@ class Scanner {
         advance();
 
         String value = source.substring(start + 1, current - 1);
-        addToken(STR, value);
+        addToken(STR, new Value.String(value));
     }
 
     private void number() {
@@ -178,7 +183,7 @@ class Scanner {
             while (isDigit(peek())) advance();
         }
 
-        addToken(NUM, Double.parseDouble(source.substring(start, current)));
+        addToken(NUM, new Value.Number(Double.parseDouble(source.substring(start, current))));
     }
 
     private void identifier() {
@@ -230,7 +235,7 @@ class Scanner {
         addToken(type, null);
     }
 
-    private void addToken(TokenType type, Object literal) {
+    private void addToken(TokenType type, Value literal) {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, start));
     }

@@ -49,7 +49,7 @@ abstract class Stmt {
     }
 
     static class Class extends Stmt {
-        Class(Token name, List<Token> inherits, List<Stmt> methods) {
+        Class(Token name, List<Expr.Var> inherits, List<Stmt> methods) {
             this.name = name;
             this.inherits = inherits;
             this.methods = methods;
@@ -61,7 +61,7 @@ abstract class Stmt {
         }
 
         public final Token name;
-        public final List<Token> inherits;
+        public final List<Expr.Var> inherits;
         public final List<Stmt> methods;
     }
 
@@ -96,7 +96,7 @@ abstract class Stmt {
     }
 
     static class Function extends Stmt {
-        Function(Token name, Map<Token,Object> parameters, Stmt body) {
+        Function(Token name, LinkedHashMap<Token,Object> parameters, Stmt body) {
             this.name = name;
             this.parameters = parameters;
             this.body = body;
@@ -108,7 +108,7 @@ abstract class Stmt {
         }
 
         public final Token name;
-        public final Map<Token,Object> parameters;
+        public final LinkedHashMap<Token,Object> parameters;
         public final Stmt body;
     }
 
@@ -145,7 +145,7 @@ abstract class Stmt {
     }
 
     static class Method extends Stmt {
-        Method(Token name, Map<Token,Object> parameters, Stmt body) {
+        Method(Token name, LinkedHashMap<Token,Object> parameters, Stmt body) {
             this.name = name;
             this.parameters = parameters;
             this.body = body;
@@ -157,7 +157,7 @@ abstract class Stmt {
         }
 
         public final Token name;
-        public final Map<Token,Object> parameters;
+        public final LinkedHashMap<Token,Object> parameters;
         public final Stmt body;
     }
 
@@ -175,7 +175,8 @@ abstract class Stmt {
     }
 
     static class Repeat extends Stmt {
-        Repeat(Expr amount, Stmt body) {
+        Repeat(Token paren, Expr amount, Stmt body) {
+            this.paren = paren;
             this.amount = amount;
             this.body = body;
         }
@@ -185,6 +186,7 @@ abstract class Stmt {
             return visitor.visit(this);
         }
 
+        public final Token paren;
         public final Expr amount;
         public final Stmt body;
     }

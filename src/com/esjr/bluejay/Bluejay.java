@@ -11,11 +11,13 @@ import java.util.List;
 public class Bluejay {
     private static String source;
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
 
     public static void runFile(String path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) System.exit(65);
+        if (hadRuntimeError) System.exit(70);
     }
 
     public static void runPrompt() throws IOException {
@@ -49,10 +51,18 @@ public class Bluejay {
 
         if (hadError) return;
 
-        AstPrinter printer = new AstPrinter();
-        for (Stmt stmt : stmts) {
-            System.out.println(printer.visit(stmt));
-        }
+        Interpreter interpreter = new Interpreter();
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(stmts);
+
+        if (hadError) return;
+
+        interpreter.interpret(stmts);
+
+        // AstPrinter printer = new AstPrinter();
+        // for (Stmt stmt : stmts) {
+        //     System.out.println(printer.visit(stmt));
+        // }
     }
 
     static void error(int pos, String message) {
@@ -65,6 +75,22 @@ public class Bluejay {
         } else {
             report(token.pos, " at '" + token.lexeme.replace("\n","\\n") + "'", message);
         }
+    }
+
+    static void runtimeError(RuntimeError error) {
+        if (error.token == null) {
+            System.err.println(AnsiColors.RED + error.getClass().getSimpleName() + ": " + error.getMessage() + AnsiColors.RESET);
+        } else {
+            int line = ((int)source.substring(0,error.token.pos).chars().filter(ch -> ch == '\n').count())+1;
+            String[] lines;
+            if (error.token.pos >= source.length()-1) {
+                lines = source.split("\n");
+            } else {
+                lines = source.substring(0,error.token.pos+1).split("\n");
+            }
+            System.err.println(AnsiColors.RED + error.getClass().getSimpleName() + ": " + error.getMessage() + "\n[line " + line + "]" + AnsiColors.RESET);
+        }
+        hadRuntimeError = true;
     }
 
     private static void report(int pos, String where, String message) {

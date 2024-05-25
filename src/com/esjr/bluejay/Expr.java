@@ -88,8 +88,9 @@ abstract class Expr {
     }
 
     static class Call extends Expr {
-        Call(Expr callee, List<Expr> arguments) {
+        Call(Expr callee, Token paren, List<Expr> arguments) {
             this.callee = callee;
+            this.paren = paren;
             this.arguments = arguments;
         }
 
@@ -99,6 +100,7 @@ abstract class Expr {
         }
 
         public final Expr callee;
+        public final Token paren;
         public final List<Expr> arguments;
     }
 
@@ -159,7 +161,7 @@ abstract class Expr {
     }
 
     static class Literal extends Expr {
-        Literal(Object value) {
+        Literal(Value value) {
             this.value = value;
         }
 
@@ -168,13 +170,13 @@ abstract class Expr {
             return visitor.visit(this);
         }
 
-        public final Object value;
+        public final Value value;
     }
 
     static class Logical extends Expr {
-        Logical(Expr left, Token operator_, Expr right) {
+        Logical(Expr left, Token operator, Expr right) {
             this.left = left;
-            this.operator_ = operator_;
+            this.operator = operator;
             this.right = right;
         }
 
@@ -184,7 +186,7 @@ abstract class Expr {
         }
 
         public final Expr left;
-        public final Token operator_;
+        public final Token operator;
         public final Expr right;
     }
 

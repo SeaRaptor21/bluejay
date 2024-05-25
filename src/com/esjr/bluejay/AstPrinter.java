@@ -52,7 +52,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     public String visit(Expr.Call thing) {
-        return "Expr.Call: " + "CALLEE(" + visit(thing.callee) + "), " + "ARGUMENTS(" + visit(thing.arguments) + ");";
+        return "Expr.Call: " + "CALLEE(" + visit(thing.callee) + "), " + "PAREN(" + visit(thing.paren) + "), " + "ARGUMENTS(" + visit(thing.arguments) + ");";
     }
 
     public String visit(Expr.Dict thing) {
@@ -76,7 +76,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     public String visit(Expr.Logical thing) {
-        return "Expr.Logical: " + "LEFT(" + visit(thing.left) + "), " + "OPERATOR_(" + visit(thing.operator_) + "), " + "RIGHT(" + visit(thing.right) + ");";
+        return "Expr.Logical: " + "LEFT(" + visit(thing.left) + "), " + "OPERATOR(" + visit(thing.operator) + "), " + "RIGHT(" + visit(thing.right) + ");";
     }
 
     public String visit(Expr.Unary thing) {
@@ -146,7 +146,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     public String visit(Stmt.Repeat thing) {
-        return "Stmt.Repeat: " + "AMOUNT(" + visit(thing.amount) + "), " + "BODY(" + visit(thing.body) + ");";
+        return "Stmt.Repeat: " + "PAREN(" + visit(thing.paren) + "), " + "AMOUNT(" + visit(thing.amount) + "), " + "BODY(" + visit(thing.body) + ");";
     }
 
     public String visit(Stmt.Return thing) {
