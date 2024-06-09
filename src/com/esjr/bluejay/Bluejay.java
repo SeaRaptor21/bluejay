@@ -24,15 +24,27 @@ public class Bluejay {
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
 
-        while (true) { 
+        while (true) {
+            StringBuilder sb = new StringBuilder();
             System.out.print(AnsiColors.BLUE + ">>> " + AnsiColors.RESET);
             String line = reader.readLine();
-            if (line == null) break;
-            run(line);
+            if (line == null) {
+                System.out.println();
+                return;
+            }
+            sb.append(line);
+            while (line.length() > 0) {
+                System.out.print(AnsiColors.BLUE + "... " + AnsiColors.RESET);
+                line = reader.readLine();
+                if (line == null) {
+                    System.out.println();
+                    return;
+                }
+                sb.append("\n"+line);
+            }
+            run(sb.toString());
             hadError = false;
         }
-
-        System.out.println();
     }
 
     private static void run(String src) {
@@ -88,7 +100,8 @@ public class Bluejay {
             } else {
                 lines = source.substring(0,error.token.pos+1).split("\n");
             }
-            System.err.println(AnsiColors.RED + error.getClass().getSimpleName() + ": " + error.getMessage() + "\n[line " + line + "]" + AnsiColors.RESET);
+            int col = lines[lines.length-1].length();
+            System.err.println(AnsiColors.RED + error.getClass().getSimpleName() + ": " + error.getMessage() + AnsiColors.BLUE + "\n" + line + " | " + AnsiColors.RESET + source.split("\n")[line-1] + "\n  " + " ".repeat((int)Math.floor(Math.log10(line))+1+col) + AnsiColors.BLUE +  "^-- Here." + AnsiColors.RESET);
         }
         hadRuntimeError = true;
     }
@@ -102,7 +115,7 @@ public class Bluejay {
             lines = source.substring(0,pos+1).split("\n");
         }
         int col = lines[lines.length-1].length();
-        System.err.println(AnsiColors.RED + "Error" + where + ": " + message + AnsiColors.BLUE + "\n" + line + " | " + AnsiColors.RESET + source.split("\n")[line-1] + "\n   " + " ".repeat(col) + AnsiColors.BLUE +  "^-- Here." + AnsiColors.RESET);
+        System.err.println(AnsiColors.RED + "SyntaxError" + where + ": " + message + AnsiColors.BLUE + "\n" + line + " | " + AnsiColors.RESET + source.split("\n")[line-1] + "\n  " + " ".repeat((int)Math.floor(Math.log10(line))+1+col) + AnsiColors.BLUE +  "^-- Here." + AnsiColors.RESET);
         hadError = true;
     }
 }

@@ -5,7 +5,7 @@ import static com.esjr.bluejay.TokenType.*;
 
 class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     final Environment globals = Builtins.globals;
-    private Environment environment = globals;
+    public Environment environment = globals;
     private final Map<Expr, Integer> locals = new HashMap<>();
 
     public static class Break extends RuntimeException {
@@ -63,13 +63,20 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
 
     public Void visit(Stmt.Break stmt) {
         Value v = stmt.value == null ? new Value.Number(1) : eval(stmt.value);
-        if (!(v instanceof Value.Number) || ((Value.Number)v).value%0 != 0) throw new RuntimeError(stmt.keyword, "Break amount must be an integer.");
+        assert v instanceof Value.Number;
+        if (!(v instanceof Value.Number) || ((Value.Number)v).value%1 != 0) throw new RuntimeError(stmt.keyword, "Break amount must be an integer.");
         throw new Break((int)((Value.Number)v).value, stmt);
     }
 
     public Void visit(Stmt.Class stmt) {
-        BluejayClass klass = new BluejayClass(stmt);
-        environment.define(stmt.name.lexeme, klass);
+        List<BluejayClass> inherits = new ArrayList<>();
+        for (Expr.Var i : stmt.inherits) {
+            Value c = eval(i);
+            if (!(c instanceof BluejayClass)) throw new RuntimeError(i.name, "A class can only inherit from other classes.");
+            inherits.add((BluejayClass)c);
+        }
+        BluejayClass class_ = new BluejayClass(stmt, inherits);
+        environment.define(stmt.name.lexeme, class_);
         return null;
     }
 
@@ -86,11 +93,12 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
                 environment = new Environment(environment);
                 environment.define(stmt.loopVar.lexeme, new Value.Null());
                 for (Value v : ((BluejayIterator)iter).iter()) {
-                    environment.assign(stmt.loopVar, v);
+                    environment.assign(stmt.loopVar, new Token(EQUAL, "="), v);
                     try {
                         exec(stmt.body);
                     } catch (Break b) {
-                        break;
+                        if (b.amount == 1) break;
+                        else throw new Break(b.amount-1, b.statement);
                     }
                 }
             } finally {
@@ -137,7 +145,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
                 try {
                     exec(stmt.body);
                 } catch (Break b) {
-                    break;
+                    if (b.amount == 1) break;
+                    else throw new Break(b.amount-1, b.statement);
                 }
             }
         } else {
@@ -162,7 +171,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
             try {
                 exec(stmt.body);
             } catch (Break b) {
-                break;
+                if (b.amount == 1) break;
+                else throw new Break(b.amount-1, b.statement);
             }
             cond = eval(stmt.condition);
         }
@@ -170,9 +180,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Value visit(Expr.Assign expr) {
-        if (expr.operator.type != TokenType.EQUAL) throw new UnsupportedOperationException("Assignment operators other than '=' have not been implemented yet.");
-        Value v = eval(expr.value);
-        assignVariable(expr.name, expr, v);
+        Value v = (expr.value != null) ? eval(expr.value) : null;
+        assignVariable(expr.name, expr, expr.operator, v);
         return v;
     }
 
@@ -181,10 +190,9 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Value visit(Expr.Set expr) {
-        if (expr.operator.type != EQUAL) throw new UnsupportedOperationException("Assignment operators other than '=' have not been implemented yet.");
         Value obj = eval(expr.expr);
-        Value v = eval(expr.value);
-        obj.setAttr(expr.name.lexeme, v);
+        Value v = (expr.value != null) ? eval(expr.value) : null;
+        obj.setAttr(expr.name.lexeme, expr.operator, v);
         return v;
     }
 
@@ -312,6 +320,7 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     private Value lookUpVariable(Token name, Expr expr) {
+        //if (name.type == THIS) return environment.get(name);
         Integer distance = locals.get(expr);
         if (distance != null) {
             return environment.getAt(distance, name.lexeme);
@@ -320,17 +329,17 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
         }
     }
 
-    private void assignVariable(Token name, Expr expr, Value value) {
+    private void assignVariable(Token name, Expr expr, Token operator, Value value) {
         Integer distance = locals.get(expr);
         if (distance != null) {
-            environment.assignAt(distance, name.lexeme, value);
+            environment.assignAt(distance, name.lexeme, operator, value);
         } else {
-            globals.assign(name, value);
+            globals.assign(name, operator, value);
         }
     }
 
     private String typeOf(Value x) {
-        return "Implement later!"; // TODO: this
+        return x.getClass().getSimpleName();
     }
 
     private boolean truthy(Value x) {

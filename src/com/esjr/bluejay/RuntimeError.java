@@ -12,4 +12,24 @@ class RuntimeError extends RuntimeException {
         super(message);
         this.token = null;
     }
+
+    public static class NameError extends RuntimeError {
+        NameError(Token token, String message) {
+            super(token, message);
+        }
+
+        NameError(String message) {
+            super(message);
+        }
+    }
+
+    public static class AttributeError extends RuntimeError {
+        AttributeError(Token token, String message) {
+            super(token, message);
+        }
+
+        AttributeError(String message) {
+            super(message);
+        }
+    }
 }

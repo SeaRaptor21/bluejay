@@ -533,17 +533,17 @@ class Parser {
     }
 
     private Token consumeSemicolon() {
-        if (check(EOS) && peek().lexeme == ";") return advance();
+        if (check(EOS) && peek().lexeme.contains(";")) return advance();
         throw error(peek(), "Expected ';'.");
     }
 
     private boolean checkSemicolon() {
         if (isAtEnd()) return false;
-        return check(EOS) && peek().lexeme == ";";
+        return check(EOS) && peek().lexeme.contains(";");
     }
 
     private boolean matchSemicolon() {
-        if (check(EOS) && peek().lexeme == ";") {
+        if (check(EOS) && peek().lexeme.contains(";")) {
             advance();
             return true;
         }

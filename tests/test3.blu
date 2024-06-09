@@ -1,7 +1,21 @@
-var list = [1,2,3,4,5];
+func ack(m, n) {
+    if (m == 0) {
+        return n+1;
+    }
 
-print(list);
+    if (m > 0) {
+        if (n == 0) {
+            return ack(m-1, 1);
+        }
+    }
 
-foreach (var e in list) {
-    print(e);
+    return ack(m-1, ack(m, n-1));
 }
+
+print(ack(0,0));
+print(ack(0,1));
+print(ack(1,0));
+print(ack(1,1));
+print(ack(1,2));
+print(ack(2,1));
+print(ack(4,0));

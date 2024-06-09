@@ -1,0 +1,16 @@
+var x=0
+while (x<3) {
+    var y=0
+    while (y<3) {
+        var z=0
+        while (z<3) {
+            print(z)
+            z=z+1
+            break 2
+        }
+        print(y)
+        y=y+1
+    }
+    print(x)
+    x=x+1
+}

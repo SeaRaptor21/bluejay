@@ -39,7 +39,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     public Void visit(Expr.Assign expr) {
-        resolve(expr.value);
+        if (expr.value != null) resolve(expr.value);
         resolveLocal(expr, expr.name);
         return null;
     }
@@ -210,6 +210,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void resolveFunction(Stmt.Method function) {
         beginScope();
+        scopes.peek().put("this", true);
         for (Token param : function.parameters.keySet()) {
             declare(param);
             define(param);

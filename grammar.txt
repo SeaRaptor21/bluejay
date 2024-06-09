@@ -12,7 +12,7 @@ break -> "break" expr? EOS;
 return -> "return" expr? EOS;
 var -> "var" ID ("=" expr)? EOS;
 func -> "func" ID "(" params? ")" block;
-class -> "class" ID (":" ID ("," ID)*)? "{" (ID "(" params? ")" block)* "}";
+class -> "class" ID (":" ID ("," ID)+)? "{" (ID "(" params? ")" block)* "}";
 import -> "import" ID ("from" STR)? EOS;
 
 expr -> assign;

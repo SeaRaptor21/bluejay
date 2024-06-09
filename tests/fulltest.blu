@@ -1,0 +1,138 @@
+// This file contains tests for all
+// of the basic statements and expressions.
+// It does NOT contain some of the more
+// complex ideas like double recursion.
+// These tests are by no means exhaustive.
+
+// Test basic binary operations
+// Should print 2.5
+print(1+2*3/4%5**6)
+
+// Test global variables
+// Should print 10
+var x = 10
+print(x)
+
+// Test blocks and block scope
+// Should print 5 then 10
+var a = 10
+{
+    var a = 5
+    print(a)
+}
+print (a)
+
+// Test if statement and some logic
+// (Commented out until we implement logic operators)
+// Should print "Math works!"
+// if (1==1 and 1+1==2) {
+//     print("Math works!")
+// } else {
+//     print("Math is broken...")
+// }
+
+// Test both while and for
+// (remember, for is desugared to while!)
+// Should print numbers 0 through 9
+for (var i=0; i<10; i++) {
+    print(i)
+}
+
+// Test foreach loop
+// Should print 1, 2, and 3
+foreach (var num in [1,2,3]) {
+    print(num)
+}
+
+// Test repeat loop
+// Should print "repeating" 10 times
+repeat (10) {
+    print("repeating")
+}
+
+// Test variable break
+// Should print 0, 0, 0, 1, 0, 2
+for (var x=0; x<3; x++) {
+    for (var y=0; y<3; y++) {
+        for (var z=0; z<3; z++) {
+            print(z)
+            break 2
+        }
+        print(y)
+    }
+    print(x)
+}
+
+// Test functions (and recursion!)
+// Should print 3628800
+func factorial(x) {
+    if (x == 1) {
+        return 1
+    } else {
+        return x*factorial(x-1)
+    }
+}
+print(factorial(10))
+
+// Test classes
+// The `add` method is testing methods,
+// and the `add_func` method is testing
+// external attribute getting.
+// Should output 6 then 12
+class Test {
+    Test(v) {
+        this.value = v
+    }
+    add(other) {
+        return this.value+other.value
+    }
+}
+
+func add_func(x, y) {
+    print(x.value)
+    print(y)
+    return x.value+y.value
+}
+
+print(add_func(Test(1), Test(5)))
+print(Test(5).add(Test(7)))
+
+/* The final correct result is as follows:
+2.5
+10
+5
+10
+Math works!
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+1
+2
+3
+repeating
+repeating
+repeating
+repeating
+repeating
+repeating
+repeating
+repeating
+repeating
+repeating
+0
+0
+0
+1
+0
+2
+3628800
+6
+12
+*/

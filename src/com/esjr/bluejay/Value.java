@@ -56,8 +56,8 @@ abstract class Value {
     public Value getAttr(java.lang.String attr) {
         throw new RuntimeError("Unsupported operation '.' for object");
     }
-    public Value setAttr(java.lang.String attr, Value v) {
-        throw new RuntimeError("Unsupported operation '.' for object");
+    public void setAttr(java.lang.String attr, Token operator, Value v) {
+        throw new RuntimeError("Cannot assign attribute for object");
     }
     
     static class Number extends Value {

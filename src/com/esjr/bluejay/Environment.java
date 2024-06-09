@@ -2,6 +2,8 @@ package com.esjr.bluejay;
 
 import java.util.*;
 
+import static com.esjr.bluejay.TokenType.*;
+
 class Environment {
     final Environment enclosing;
     final Map<String, Value> values = new HashMap<>();
@@ -23,21 +25,93 @@ class Environment {
 
         if (enclosing != null) return enclosing.get(name);
         
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new RuntimeError.NameError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assign(Token name, Value value) {
+    void assign(Token name, Token operator, Value value) {
         if (values.containsKey(name.lexeme)) {
-            values.put(name.lexeme, value);
+            switch (operator.type) {
+                case EQUAL:
+                    values.put(name.lexeme, value);
+                    break;
+                case PLUS_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).add(value));
+                    break;
+                case MINUS_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).sub(value));
+                    break;
+                case STAR_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).mul(value));
+                    break;
+                case SLASH_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).div(value));
+                    break;
+                case PERCENT_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).mod(value));
+                    break;
+                case STAR_STAR_EQUAL:
+                    values.put(name.lexeme, values.get(name.lexeme).pow(value));
+                    break;
+                case PLUS_PLUS:
+                    values.put(name.lexeme, values.get(name.lexeme).add(new Value.Number(1)));
+                    break;
+                case MINUS_MINUS:
+                    values.put(name.lexeme, values.get(name.lexeme).sub(new Value.Number(1)));
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
+            }
             return;
         }
 
         if (enclosing != null) {
-            enclosing.assign(name, value);
+            enclosing.assign(name, operator, value);
             return;
         }
         
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+    }
+
+    void assignStr(String name, Token operator, Value value) {
+        if (values.containsKey(name)) {
+            switch (operator.type) {
+                case EQUAL:
+                    values.put(name, value);
+                    break;
+                case PLUS_EQUAL:
+                    values.put(name, values.get(name).add(value));
+                    break;
+                case MINUS_EQUAL:
+                    values.put(name, values.get(name).sub(value));
+                    break;
+                case STAR_EQUAL:
+                    values.put(name, values.get(name).mul(value));
+                    break;
+                case SLASH_EQUAL:
+                    values.put(name, values.get(name).div(value));
+                    break;
+                case PERCENT_EQUAL:
+                    values.put(name, values.get(name).mod(value));
+                    break;
+                case STAR_STAR_EQUAL:
+                    values.put(name, values.get(name).pow(value));
+                    break;
+                case PLUS_PLUS:
+                    values.put(name, values.get(name).add(new Value.Number(1)));
+                    break;
+                case MINUS_MINUS:
+                    values.put(name, values.get(name).sub(new Value.Number(1)));
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
+            }
+            return;
+        }
+
+        if (enclosing != null) {
+            enclosing.assignStr(name, operator, value);
+            return;
+        }
     }
 
     Environment ancestor(int distance) {
@@ -53,7 +127,38 @@ class Environment {
         return ancestor(distance).values.get(name);
     }
 
-    void assignAt(int distance, String name, Value value) {
-        ancestor(distance).values.put(name, value);
+    void assignAt(int distance, String name, Token operator, Value value) {
+        Environment e = ancestor(distance);
+        switch (operator.type) {
+            case EQUAL:
+                e.values.put(name, value);
+                break;
+            case PLUS_EQUAL:
+                e.values.put(name, e.values.get(name).add(value));
+                break;
+            case MINUS_EQUAL:
+                e.values.put(name, e.values.get(name).sub(value));
+                break;
+            case STAR_EQUAL:
+                e.values.put(name, e.values.get(name).mul(value));
+                break;
+            case SLASH_EQUAL:
+                e.values.put(name, e.values.get(name).div(value));
+                break;
+            case PERCENT_EQUAL:
+                e.values.put(name, e.values.get(name).mod(value));
+                break;
+            case STAR_STAR_EQUAL:
+                e.values.put(name, e.values.get(name).pow(value));
+                break;
+            case PLUS_PLUS:
+                e.values.put(name, e.values.get(name).add(new Value.Number(1)));
+                break;
+            case MINUS_MINUS:
+                e.values.put(name, e.values.get(name).sub(new Value.Number(1)));
+                break;
+            default:
+                throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
+        }
     }
 }

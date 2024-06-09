@@ -130,6 +130,12 @@ class Scanner {
             case '/':
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    while ((peek() != '*' || peekNext() != '/') && !isAtEnd()) advance();
+                    if (!isAtEnd()) {
+                        advance();
+                        advance();
+                    }
                 } else {
                     addToken(match('=') ? SLASH_EQUAL : SLASH);
                 }
