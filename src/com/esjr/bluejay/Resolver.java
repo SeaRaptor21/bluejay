@@ -133,10 +133,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     public Void visit(Expr.Get expr) {
+        resolve(expr.expr);
         return null;
     }
 
     public Void visit(Expr.Set expr) {
+        resolve(expr.expr);
         resolve(expr.value);
         return null;
     }

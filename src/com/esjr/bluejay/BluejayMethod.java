@@ -3,7 +3,7 @@ package com.esjr.bluejay;
 import java.util.List;
 
 class BluejayMethod extends Value {
-    private final Stmt.Method declaration;
+    final Stmt.Method declaration;
     BluejayMethod(Stmt.Method declaration) {
         this.declaration = declaration;
     }

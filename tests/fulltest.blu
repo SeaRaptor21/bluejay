@@ -89,8 +89,6 @@ class Test {
 }
 
 func add_func(x, y) {
-    print(x.value)
-    print(y)
     return x.value+y.value
 }
 

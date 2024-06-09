@@ -13,8 +13,8 @@ class BluejayObj extends Value {
         Value res;
         if (attributes.values.containsKey(attr)) res = attributes.values.get(attr);
         else res = class_.getStatic(attr);
-        if (res instanceof Method) {
-            return ((Method)res).register(this);
+        if (res instanceof BluejayMethod) {
+            return ((BluejayMethod)res).register(this);
         }
         return res;
     }
