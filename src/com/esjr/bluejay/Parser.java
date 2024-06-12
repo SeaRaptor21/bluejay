@@ -212,12 +212,9 @@ class Parser {
 
     private Stmt classStmt() {
         Token name = consume(ID, "Expected class name.");
-        List<Expr.Var> inherits = new ArrayList<Expr.Var>();
+        Expr.Var inherits = null;
         if (match(COLON)) {
-            do {
-                Token inherit = consume(ID, "Expected name of inherited class.");
-                inherits.add(new Expr.Var(inherit));
-            } while (match(COMMA));
+            inherits = new Expr.Var(consume(ID, "Expected name of inherited class."));
         }
         consume(LEFT_BRACE, "Expected '{' after class name.");
         List<Stmt> mthds = new ArrayList<Stmt>();
@@ -413,8 +410,8 @@ class Parser {
     }
 
     private Expr primary() {
-        if (match(TRUE)) return new Expr.Literal(new Value.Boolean(true));
-        if (match(FALSE)) return new Expr.Literal(new Value.Boolean(false));
+        if (match(TRUE)) return new Expr.Literal(new Value.BluejayBoolean(true));
+        if (match(FALSE)) return new Expr.Literal(new Value.BluejayBoolean(false));
         if (match(NULL)) return new Expr.Literal(new Value.Null());
         if (match(THIS, ID)) return new Expr.Var(previous());
         if (match(NUM, STR)) {

@@ -1,0 +1,16 @@
+func bubbleSort(a) {
+    var n = a.length()
+    var swapped = true
+    while (swapped) {
+        swapped = false
+        for (var i = 1; i<n; i++) {
+            if (a[i-1] > a[i]) {
+                a.swap(i-1, i)
+                swapped = true
+            }
+        }
+    }
+    return a
+}
+
+print(bubbleSort([3,2,1]))

@@ -69,13 +69,9 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Void visit(Stmt.Class stmt) {
-        List<BluejayClass> inherits = new ArrayList<>();
-        for (Expr.Var i : stmt.inherits) {
-            Value c = eval(i);
-            if (!(c instanceof BluejayClass)) throw new RuntimeError(i.name, "A class can only inherit from other classes.");
-            inherits.add((BluejayClass)c);
-        }
-        BluejayClass class_ = new BluejayClass(stmt, inherits);
+        Value inherits = stmt.inherits != null ? eval(stmt.inherits) : null;
+        if (!(inherits instanceof BluejayClass) && inherits != null) throw new RuntimeError(stmt.inherits.name, "A class can only inherit from another classes.");
+        BluejayClass class_ = new BluejayClass(stmt, (BluejayClass)inherits);
         environment.define(stmt.name.lexeme, class_);
         return null;
     }
@@ -87,25 +83,33 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
 
     public Void visit(Stmt.Foreach stmt) {
         Value iter = eval(stmt.iter);
-        if (iter instanceof BluejayIterator) {
-            Environment previous = environment;
-            try {
-                environment = new Environment(environment);
-                environment.define(stmt.loopVar.lexeme, new Value.Null());
-                for (Value v : ((BluejayIterator)iter).iter()) {
-                    environment.assign(stmt.loopVar, new Token(EQUAL, "="), v);
-                    try {
-                        exec(stmt.body);
-                    } catch (Break b) {
-                        if (b.amount == 1) break;
-                        else throw new Break(b.amount-1, b.statement);
-                    }
-                }
-            } finally {
-                environment = previous;
+        if (!(iter instanceof BluejayObj)) throw new RuntimeError(stmt.loopVar, "Cannot iterate over object of type '"+typeOf(iter)+"'.");
+        while (((BluejayObj)iter).class_ != Builtins.listClass) {
+            if (!(iter instanceof BluejayObj)) throw new RuntimeError(stmt.loopVar, "Cannot iterate over object of type '"+typeOf(iter)+"'.");
+            Value iterMthd = ((BluejayObj)iter).class_.getStatic("$iter");
+            if (iterMthd instanceof BluejayMethod && iterMthd != null) {
+                iter = ((BluejayRegisteredMethod)((BluejayMethod)iterMthd).register((BluejayObj)iter)).call(this, new ArrayList<>());
+            } else {
+                throw new RuntimeError(stmt.loopVar, "Cannot iterate over object of type '"+typeOf(iter)+"'.");
             }
-        } else {
-            throw new RuntimeError(stmt.loopVar, "Cannot iterate over object of type '"+typeOf(iter)+"'.");
+        }
+        Environment previous = environment;
+        try {
+            environment = new Environment(environment);
+            environment.define(stmt.loopVar.lexeme, new Value.Null());
+            @SuppressWarnings("unchecked")
+            List<Value> iterable = (List<Value>)((BluejayObj)iter).specialAttrs.get("elements");
+            for (Value v : iterable) {
+                environment.assign(this, stmt.loopVar, new Token(EQUAL, "="), v);
+                try {
+                    exec(stmt.body);
+                } catch (Break b) {
+                    if (b.amount == 1) break;
+                    else throw new Break(b.amount-1, b.statement);
+                }
+            }
+        } finally {
+            environment = previous;
         }
         return null;
     }
@@ -186,13 +190,13 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Value visit(Expr.Get expr) {
-        return eval(expr.expr).getAttr(expr.name.lexeme);
+        return eval(expr.expr).getAttr(this, expr.name);
     }
 
     public Value visit(Expr.Set expr) {
         Value obj = eval(expr.expr);
         Value v = (expr.value != null) ? eval(expr.value) : null;
-        obj.setAttr(expr.name.lexeme, expr.operator, v);
+        obj.setAttr(this, expr.name.lexeme, expr.operator, v);
         return v;
     }
 
@@ -200,18 +204,18 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
         Value left = eval(expr.left);
         Value right = eval(expr.right);
         switch (expr.operator.type) {
-            case PLUS: return left.add(right);
-            case MINUS: return left.sub(right);
-            case STAR: return left.mul(right);
-            case SLASH: return left.div(right);
-            case PERCENT: return left.mod(right);
-            case STAR_STAR: return left.pow(right);
-            case EQUAL_EQUAL: return left.eq(right);
-            case BANG_EQUAL: return left.ne(right);
-            case LESS: return left.lt(right);
-            case LESS_EQUAL: return left.lte(right);
-            case GREATER: return left.gt(right);
-            case GREATER_EQUAL: return left.gte(right);
+            case PLUS: return left.add(this, right);
+            case MINUS: return left.sub(this, right);
+            case STAR: return left.mul(this, right);
+            case SLASH: return left.div(this, right);
+            case PERCENT: return left.mod(this, right);
+            case STAR_STAR: return left.pow(this, right);
+            case EQUAL_EQUAL: return left.eq(this, right);
+            case BANG_EQUAL: return left.ne(this, right);
+            case LESS: return left.lt(this, right);
+            case LESS_EQUAL: return left.lte(this, right);
+            case GREATER: return left.gt(this, right);
+            case GREATER_EQUAL: return left.gte(this, right);
             default:
                 throw new UnsupportedOperationException("Token "+expr.operator.lexeme+" is not a valid operator.");
         }
@@ -252,15 +256,22 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Value visit(Expr.Index expr) {
-        return eval(expr.expr).getItem(eval(expr.index));
+        return eval(expr.expr).getItem(this, eval(expr.index));
     }
 
     public Value visit(Expr.ListLiteral expr) {
-        List<Value> elems = new ArrayList<>();
-        for (Expr e : expr.elements) {
-            elems.add(eval(e));
+        BluejayObj list = (BluejayObj)Builtins.listClass.call(this, new ArrayList<Value>());
+        try {
+            @SuppressWarnings("unchecked")
+            List<Value> elems = (List<Value>)list.specialAttrs.get("elements");
+            for (Expr e : expr.elements) {
+                elems.add(eval(e));
+            }
+        } catch (ClassCastException e) {
+            System.err.println("Cannot access elements of list.");
+        } finally {
+            return list;
         }
-        return new Value.List(elems);
     }
 
     public Value visit(Expr.Literal expr) {
@@ -278,7 +289,7 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
                 if (truthy(left)) return left;
                 return right;
             case XOR:
-                return new Value.Boolean(truthy(left) != truthy(right));
+                return new Value.BluejayBoolean(truthy(left) != truthy(right));
             default:
                 throw new UnsupportedOperationException("Token "+expr.operator.lexeme+" is not a valid operator.");
         }
@@ -288,12 +299,12 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
         Value right = eval(expr.right);
         switch (expr.operator.type) {
             case MINUS:
-                return right.neg();
+                return right.neg(this);
             case PLUS:
-                return right.uadd();
+                return right.uadd(this);
             case BANG:
             case NOT:
-                return new Value.Boolean(!truthy(right));
+                return new Value.BluejayBoolean(!truthy(right));
             default:
                 throw new UnsupportedOperationException("Token "+expr.operator.lexeme+" is not a valid operator.");
         }
@@ -332,9 +343,9 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     private void assignVariable(Token name, Expr expr, Token operator, Value value) {
         Integer distance = locals.get(expr);
         if (distance != null) {
-            environment.assignAt(distance, name.lexeme, operator, value);
+            environment.assignAt(this, distance, name.lexeme, operator, value);
         } else {
-            globals.assign(name, operator, value);
+            globals.assign(this, name, operator, value);
         }
     }
 
@@ -343,14 +354,14 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     private boolean truthy(Value x) {
-        if (x instanceof Value.Boolean) {
-            return ((Value.Boolean)x).value;
+        if (x instanceof Value.BluejayBoolean) {
+            return ((Value.BluejayBoolean)x).value;
         } else if (x instanceof Value.Number) {
             return ((Value.Number)x).value != 0;
-        } else if (x instanceof Value.String) {
-            return ((Value.String)x).value.length() > 0;
-        } else if (x instanceof Value.List) {
-            return ((Value.List)x).elements.size() > 0;
+        } else if (x instanceof Value.BluejayString) {
+            return ((Value.BluejayString)x).value.length() > 0;
+        } else if (x instanceof Value.BluejayList) {
+            return ((Value.BluejayList)x).elements.size() > 0;
         } else if (x instanceof Value.Dict) {
             return ((Value.Dict)x).elements.size() > 0;
         } else if (x instanceof Value.Null) {

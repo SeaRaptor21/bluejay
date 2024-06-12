@@ -12,11 +12,11 @@ class BluejayMethod extends Value {
         return declaration.parameters.size();
     }
 
-    public java.lang.String toString() {
+    public String toString(Interpreter i) {
         return "<method " + declaration.name.lexeme + ">";
     }
 
-    public Value call(Interpreter interpreter, java.util.List<Value> arguments, Value object) {
+    public Value call(Interpreter interpreter, List<Value> arguments, Value object) {
         Environment environment = new Environment(interpreter.environment);
         environment.define("this", object);
         for (int i = 0; i < declaration.parameters.size(); i++) {

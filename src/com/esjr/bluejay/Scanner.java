@@ -178,7 +178,7 @@ class Scanner {
         advance();
 
         String value = source.substring(start + 1, current - 1);
-        addToken(STR, new Value.String(value));
+        addToken(STR, new Value.BluejayString(value));
     }
 
     private void number() {

@@ -63,9 +63,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         inClass++;
         
-        for (Expr.Var inherit : stmt.inherits) {
-            resolveLocal(inherit, inherit.name);
-        }
+        if (stmt.inherits != null) resolveLocal(stmt.inherits, stmt.inherits.name);
+        
         for (Stmt mthd : stmt.methods) {
             resolve(mthd);
         }

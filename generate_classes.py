@@ -87,7 +87,7 @@ expr = ("Expr", [
 stmt = ("Stmt", [
     "Block      : List<Stmt> statements",
     "Break      : Token keyword, Expr value",
-    "Class      : Token name, List<Expr.Var> inherits, List<Stmt> methods",
+    "Class      : Token name, Expr.Var inherits, List<Stmt> methods",
     "Expression : Expr expression",
     "Foreach    : Token loopVar, Expr iter, Stmt body",
     "Function   : Token name, LinkedHashMap<Token,Object> parameters, Stmt body",

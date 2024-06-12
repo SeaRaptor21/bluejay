@@ -46,7 +46,7 @@ foreach (var num in [1,2,3]) {
 
 // Test repeat loop
 // Should print "repeating" 10 times
-repeat (10) {
+repeat (5) {
     print("repeating")
 }
 
@@ -79,8 +79,8 @@ print(factorial(10))
 // and the `add_func` method is testing
 // external attribute getting.
 // Should output 6 then 12
-class Test {
-    Test(v) {
+class A {
+    A(v) {
         this.value = v
     }
     add(other) {
@@ -92,8 +92,22 @@ func add_func(x, y) {
     return x.value+y.value
 }
 
-print(add_func(Test(1), Test(5)))
-print(Test(5).add(Test(7)))
+print(add_func(A(1), A(5)))
+print(A(5).add(A(7)))
+
+// Test inheritance
+// Should output 7 then 2
+class B : A {
+    B(v) {
+        this.value = v
+    }
+    sub(other) {
+        return this.value-other.value
+    }
+}
+
+print(B(4).add(B(3)))
+print(B(8).sub(B(6)))
 
 /* The final correct result is as follows:
 2.5
@@ -119,11 +133,6 @@ repeating
 repeating
 repeating
 repeating
-repeating
-repeating
-repeating
-repeating
-repeating
 0
 0
 0
@@ -133,4 +142,6 @@ repeating
 3628800
 6
 12
+7
+2
 */

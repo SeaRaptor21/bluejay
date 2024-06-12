@@ -32,4 +32,14 @@ class RuntimeError extends RuntimeException {
             super(message);
         }
     }
+
+    public static class TypeError extends RuntimeError {
+        TypeError(Token token, String message) {
+            super(token, message);
+        }
+
+        TypeError(String message) {
+            super(message);
+        }
+    }
 }

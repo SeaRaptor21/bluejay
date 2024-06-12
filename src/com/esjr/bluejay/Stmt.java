@@ -49,7 +49,7 @@ abstract class Stmt {
     }
 
     static class Class extends Stmt {
-        Class(Token name, List<Expr.Var> inherits, List<Stmt> methods) {
+        Class(Token name, Expr.Var inherits, List<Stmt> methods) {
             this.name = name;
             this.inherits = inherits;
             this.methods = methods;
@@ -61,7 +61,7 @@ abstract class Stmt {
         }
 
         public final Token name;
-        public final List<Expr.Var> inherits;
+        public final Expr.Var inherits;
         public final List<Stmt> methods;
     }
 

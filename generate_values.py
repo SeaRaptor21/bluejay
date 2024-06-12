@@ -1,3 +1,13 @@
+################################
+##  WARNING                   ##
+##  This file is depricated,  ##
+##  please do NOT run it.     ##
+##  I've made changes to the  ##
+##  Values.java file by hand, ##
+##  and running this would    ##
+##  clear them.               ##
+################################
+
 def define_type(class_name, field_list, return_val):
     fields = field_list.split(', ')
     params = field_defs = ''
@@ -41,4 +51,5 @@ values = [
     "Null    | | \"null\""
 ]
 
-define_values(values)
+# Commented out to prevent from running.
+# define_values(values)

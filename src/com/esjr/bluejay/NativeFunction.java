@@ -4,9 +4,9 @@ import java.util.*;
 
 abstract class NativeFunction extends Value implements BluejayCallable {
     int arity;
-    java.lang.String name;
+    String name;
 
-    NativeFunction(int arity, java.lang.String name) {
+    NativeFunction(int arity, String name) {
         this.arity = arity;
         this.name = name;
     }
@@ -15,7 +15,7 @@ abstract class NativeFunction extends Value implements BluejayCallable {
         return arity;
     }
 
-    public java.lang.String toString() {
+    public String toString(Interpreter i) {
         return "<built-in function "+name+">";
     }
 }

@@ -12,11 +12,11 @@ class BluejayFunction extends Value implements BluejayCallable {
         return declaration.parameters.size();
     }
 
-    public java.lang.String toString() {
+    public String toString(Interpreter i) {
         return "<function " + declaration.name.lexeme + ">";
     }
 
-    public Value call(Interpreter interpreter, java.util.List<Value> arguments) {
+    public Value call(Interpreter interpreter, List<Value> arguments) {
         Environment environment = new Environment(interpreter.environment);
         for (int i = 0; i < declaration.parameters.size(); i++) {
             environment.define(((Token)(declaration.parameters.keySet().toArray()[i])).lexeme, arguments.get(i));

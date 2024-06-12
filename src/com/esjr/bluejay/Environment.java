@@ -28,35 +28,35 @@ class Environment {
         throw new RuntimeError.NameError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assign(Token name, Token operator, Value value) {
+    void assign(Interpreter i, Token name, Token operator, Value value) {
         if (values.containsKey(name.lexeme)) {
             switch (operator.type) {
                 case EQUAL:
                     values.put(name.lexeme, value);
                     break;
                 case PLUS_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).add(value));
+                    values.put(name.lexeme, values.get(name.lexeme).add(i, value));
                     break;
                 case MINUS_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).sub(value));
+                    values.put(name.lexeme, values.get(name.lexeme).sub(i, value));
                     break;
                 case STAR_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).mul(value));
+                    values.put(name.lexeme, values.get(name.lexeme).mul(i, value));
                     break;
                 case SLASH_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).div(value));
+                    values.put(name.lexeme, values.get(name.lexeme).div(i, value));
                     break;
                 case PERCENT_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).mod(value));
+                    values.put(name.lexeme, values.get(name.lexeme).mod(i, value));
                     break;
                 case STAR_STAR_EQUAL:
-                    values.put(name.lexeme, values.get(name.lexeme).pow(value));
+                    values.put(name.lexeme, values.get(name.lexeme).pow(i, value));
                     break;
                 case PLUS_PLUS:
-                    values.put(name.lexeme, values.get(name.lexeme).add(new Value.Number(1)));
+                    values.put(name.lexeme, values.get(name.lexeme).add(i, new Value.Number(1)));
                     break;
                 case MINUS_MINUS:
-                    values.put(name.lexeme, values.get(name.lexeme).sub(new Value.Number(1)));
+                    values.put(name.lexeme, values.get(name.lexeme).sub(i, new Value.Number(1)));
                     break;
                 default:
                     throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
@@ -65,42 +65,42 @@ class Environment {
         }
 
         if (enclosing != null) {
-            enclosing.assign(name, operator, value);
+            enclosing.assign(i, name, operator, value);
             return;
         }
         
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assignStr(String name, Token operator, Value value) {
+    void assignStr(Interpreter i, String name, Token operator, Value value) {
         if (values.containsKey(name)) {
             switch (operator.type) {
                 case EQUAL:
                     values.put(name, value);
                     break;
                 case PLUS_EQUAL:
-                    values.put(name, values.get(name).add(value));
+                    values.put(name, values.get(name).add(i, value));
                     break;
                 case MINUS_EQUAL:
-                    values.put(name, values.get(name).sub(value));
+                    values.put(name, values.get(name).sub(i, value));
                     break;
                 case STAR_EQUAL:
-                    values.put(name, values.get(name).mul(value));
+                    values.put(name, values.get(name).mul(i, value));
                     break;
                 case SLASH_EQUAL:
-                    values.put(name, values.get(name).div(value));
+                    values.put(name, values.get(name).div(i, value));
                     break;
                 case PERCENT_EQUAL:
-                    values.put(name, values.get(name).mod(value));
+                    values.put(name, values.get(name).mod(i, value));
                     break;
                 case STAR_STAR_EQUAL:
-                    values.put(name, values.get(name).pow(value));
+                    values.put(name, values.get(name).pow(i, value));
                     break;
                 case PLUS_PLUS:
-                    values.put(name, values.get(name).add(new Value.Number(1)));
+                    values.put(name, values.get(name).add(i, new Value.Number(1)));
                     break;
                 case MINUS_MINUS:
-                    values.put(name, values.get(name).sub(new Value.Number(1)));
+                    values.put(name, values.get(name).sub(i, new Value.Number(1)));
                     break;
                 default:
                     throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
@@ -109,7 +109,7 @@ class Environment {
         }
 
         if (enclosing != null) {
-            enclosing.assignStr(name, operator, value);
+            enclosing.assignStr(i, name, operator, value);
             return;
         }
     }
@@ -127,35 +127,35 @@ class Environment {
         return ancestor(distance).values.get(name);
     }
 
-    void assignAt(int distance, String name, Token operator, Value value) {
+    void assignAt(Interpreter i, int distance, String name, Token operator, Value value) {
         Environment e = ancestor(distance);
         switch (operator.type) {
             case EQUAL:
                 e.values.put(name, value);
                 break;
             case PLUS_EQUAL:
-                e.values.put(name, e.values.get(name).add(value));
+                e.values.put(name, e.values.get(name).add(i, value));
                 break;
             case MINUS_EQUAL:
-                e.values.put(name, e.values.get(name).sub(value));
+                e.values.put(name, e.values.get(name).sub(i, value));
                 break;
             case STAR_EQUAL:
-                e.values.put(name, e.values.get(name).mul(value));
+                e.values.put(name, e.values.get(name).mul(i, value));
                 break;
             case SLASH_EQUAL:
-                e.values.put(name, e.values.get(name).div(value));
+                e.values.put(name, e.values.get(name).div(i, value));
                 break;
             case PERCENT_EQUAL:
-                e.values.put(name, e.values.get(name).mod(value));
+                e.values.put(name, e.values.get(name).mod(i, value));
                 break;
             case STAR_STAR_EQUAL:
-                e.values.put(name, e.values.get(name).pow(value));
+                e.values.put(name, e.values.get(name).pow(i, value));
                 break;
             case PLUS_PLUS:
-                e.values.put(name, e.values.get(name).add(new Value.Number(1)));
+                e.values.put(name, e.values.get(name).add(i, new Value.Number(1)));
                 break;
             case MINUS_MINUS:
-                e.values.put(name, e.values.get(name).sub(new Value.Number(1)));
+                e.values.put(name, e.values.get(name).sub(i, new Value.Number(1)));
                 break;
             default:
                 throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
