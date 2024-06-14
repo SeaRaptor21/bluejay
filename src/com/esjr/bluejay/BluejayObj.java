@@ -51,53 +51,104 @@ class BluejayObj extends Value {
         }
         return "<" + class_.name + " object>";
     }
+
+    private Value tryOperator(Interpreter i, String name, Value... arguments) {
+        Value maybeOp = class_.getStatic(name);
+        if (maybeOp != null) {
+            List<Value> args = new ArrayList<>(Arrays.asList(arguments));
+            try {
+                if (maybeOp instanceof BluejayMethod) {
+                    return ((BluejayMethod)maybeOp).call(i, args, this);
+                } else if (maybeOp instanceof NativeMethod) {
+                    return ((NativeMethod)maybeOp).call(i, args, this);
+                } else {
+                    throw new RuntimeError.TypeError("The attribute name '"+name+"' of "+class_.name+" should be a method.");
+                }
+            } catch (Interpreter.Return r) {
+                return r.value;
+            }
+        }
+        return null;
+    }
     
     public Value add(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '+' for object");
+        Value res = tryOperator(i, "$add", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '+' for object of type "+class_.name);
+        return res;
     }
     public Value sub(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '-' for object");
+        Value res = tryOperator(i, "$sub", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '-' for object of type "+class_.name);
+        return res;
     }
     public Value mul(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '*' for object");
+        Value res = tryOperator(i, "$mul", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '*' for object of type "+class_.name);
+        return res;
     }
     public Value div(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '/' for object");
+        Value res = tryOperator(i, "$div", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '/' for object of type "+class_.name);
+        return res;
     }
     public Value mod(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '%' for object");
+        Value res = tryOperator(i, "$mod", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '%' for object of type "+class_.name);
+        return res;
     }
     public Value pow(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '**' for object");
+        Value res = tryOperator(i, "$pow", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '**' for object of type "+class_.name);
+        return res;
     }
     public Value eq(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '==' for object");
+        Value res = tryOperator(i, "$eq", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '==' for object of type "+class_.name);
+        return res;
     }
     public Value lt(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '<' for object");
+        Value res = tryOperator(i, "$lt", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '<' for object of type "+class_.name);
+        return res;
     }
     public Value lte(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '<=' for object");
+        Value res = tryOperator(i, "$lte", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '<=' for object of type "+class_.name);
+        return res;
     }
     public Value gt(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '>' for object");
+        Value res = tryOperator(i, "$gt", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '>' for object of type "+class_.name);
+        return res;
     }
     public Value gte(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '>=' for object");
+        Value res = tryOperator(i, "$gte", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '>=' for object of type "+class_.name);
+        return res;
     }
     public Value ne(Interpreter i, Value other) {
-        throw new RuntimeError("Unsupported operation '!=' for object");
+        Value res = tryOperator(i, "$ne", other);
+        if (res == null) throw new RuntimeError("Unsupported operation '!=' for object of type "+class_.name);
+        return res;
     }
     public Value neg(Interpreter i) {
-        throw new RuntimeError("Unsupported operation unary '-' for object");
+        Value res = tryOperator(i, "$neg");
+        if (res == null) throw new RuntimeError("Unsupported operation unary '-' for object of type "+class_.name);
+        return res;
     }
     public Value uadd(Interpreter i) {
-        throw new RuntimeError("Unsupported operation unary '+' for object");
+        Value res = tryOperator(i, "$uadd");
+        if (res == null) throw new RuntimeError("Unsupported operation unary '+' for object of type "+class_.name);
+        return res;
     }
     public Value getItem(Interpreter i, Value index) {
-        throw new RuntimeError("Cannot index on object");
+        Value res = tryOperator(i, "$getitem", index);
+        if (res == null) throw new RuntimeError("Object of type "+class_.name+" is not subscripatble");
+        return res;
     }
     public Value setItem(Interpreter i, Value index, Value v) {
-        throw new RuntimeError("Cannot index on object");
+        Value res = tryOperator(i, "$setitem", index, v);
+        if (res == null) throw new RuntimeError("Item assignment not supported for object of type "+class_.name);
+        return res;
     }
 }

@@ -77,6 +77,7 @@ expr = ("Expr", [
     "Dict        : List<Expr> keys, List<Expr> values",
     "Grouping    : Expr expression",
     "Index       : Expr expr, Expr index",
+    "SetIndex    : Expr expr, Expr index, Token operator, Expr value",
     "ListLiteral : List<Expr> elements",
     "Literal     : Value value",
     "Logical     : Expr left, Token operator, Expr right",

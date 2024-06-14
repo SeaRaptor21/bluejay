@@ -3,9 +3,9 @@ class Test {
         this.value = v;
     }
     
-    add(other) {
+    $add(other) {
         return this.value+other.value;
     }
 }
 
-print(Test(5).add(Test(7)))
+print(Test(5) + est(7)

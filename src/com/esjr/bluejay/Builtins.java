@@ -10,6 +10,7 @@ class Builtins {
     public static final Environment globals = new Environment();
     public static NativeClass listClass;
     static {
+        // print function
         globals.define("print", new NativeFunction(1, "print") {
             public Value call(Interpreter interpreter, List<Value> arguments) {
                 List<String> out = new ArrayList<>();
@@ -21,6 +22,7 @@ class Builtins {
             }
         });
 
+        // input function
         globals.define("input", new NativeFunction(1, "input") {
             public Value call(Interpreter interpreter, List<Value> arguments) {
                 try {
@@ -35,6 +37,7 @@ class Builtins {
             }
         });
 
+        // List class
         listClass = new NativeClass("List", null);
         listClass.addStatic("List", new NativeMethod(0, "List") {
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
@@ -57,6 +60,29 @@ class Builtins {
                 for (Value a : arguments) {
                     ((List<Value>)object.specialAttrs.get("elements")).add(a);
                 }
+                return new Value.Null();
+            }
+        });
+        listClass.addStatic("$getitem", new NativeMethod(1, "$getitem") {
+            @SuppressWarnings("unchecked")
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                Value index = arguments.get(0);
+                if (!(index instanceof Value.Number) || ((Value.Number)index).value % 1 != 0) throw new RuntimeError.TypeError("List indecies must be integers");
+                int i = (int)((Value.Number)index).value;
+                List<Value> elems = (List<Value>)object.specialAttrs.get("elements");
+                if (i<0 || i>=elems.size()) throw new RuntimeError("Invalid index for list of length "+elems.size());
+                return elems.get(i);
+            }
+        });
+        listClass.addStatic("$setitem", new NativeMethod(1, "$setitem") {
+            @SuppressWarnings("unchecked")
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                Value index = arguments.get(0);
+                if (!(index instanceof Value.Number) || ((Value.Number)index).value % 1 != 0) throw new RuntimeError.TypeError("List indecies must be integers");
+                int i = (int)((Value.Number)index).value;
+                List<Value> elems = (List<Value>)object.specialAttrs.get("elements");
+                if (i<0 || i>=elems.size()) throw new RuntimeError("Invalid index for list of length "+elems.size());
+                elems.set(i, arguments.get(1));
                 return new Value.Null();
             }
         });

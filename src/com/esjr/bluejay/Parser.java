@@ -275,6 +275,10 @@ class Parser {
                 Expr thing = ((Expr.Get)expr).expr;
                 Token name = ((Expr.Get)expr).name;
                 return new Expr.Set(thing, name, equals, value);
+            } else if (expr instanceof Expr.Index) {
+                Expr thing = ((Expr.Index)expr).expr;
+                Expr index = ((Expr.Index)expr).index;
+                return new Expr.SetIndex(thing, index, equals, value);
             }
             error(equals, "Invalid assignment target."); 
         } else if (match(PLUS_PLUS,MINUS_MINUS)) {
@@ -298,7 +302,7 @@ class Parser {
         while (match(OR, XOR)) {
             Token op = previous();
             Expr right = and();
-            expr = new Expr.Binary(expr, op, right);
+            expr = new Expr.Logical(expr, op, right);
         }
         return expr;
     }
@@ -308,7 +312,7 @@ class Parser {
         while (match(AND)) {
             Token op = previous();
             Expr right = not();
-            expr = new Expr.Binary(expr, op, right);
+            expr = new Expr.Logical(expr, op, right);
         }
         return expr;
     }

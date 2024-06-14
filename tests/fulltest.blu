@@ -25,11 +25,11 @@ print (a)
 // Test if statement and some logic
 // (Commented out until we implement logic operators)
 // Should print "Math works!"
-// if (1==1 and 1+1==2) {
-//     print("Math works!")
-// } else {
-//     print("Math is broken...")
-// }
+if (1==1 and 1+1==2) {
+    print("Math works!")
+} else {
+    print("Math is broken...")
+}
 
 // Test both while and for
 // (remember, for is desugared to while!)

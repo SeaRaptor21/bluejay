@@ -12,6 +12,7 @@ abstract class Expr {
         T visit(Dict expr);
         T visit(Grouping expr);
         T visit(Index expr);
+        T visit(SetIndex expr);
         T visit(ListLiteral expr);
         T visit(Literal expr);
         T visit(Logical expr);
@@ -145,6 +146,25 @@ abstract class Expr {
 
         public final Expr expr;
         public final Expr index;
+    }
+
+    static class SetIndex extends Expr {
+        SetIndex(Expr expr, Expr index, Token operator, Expr value) {
+            this.expr = expr;
+            this.index = index;
+            this.operator = operator;
+            this.value = value;
+        }
+
+        @Override
+        <T> T accept(Visitor<T> visitor) {
+            return visitor.visit(this);
+        }
+
+        public final Expr expr;
+        public final Expr index;
+        public final Token operator;
+        public final Expr value;
     }
 
     static class ListLiteral extends Expr {

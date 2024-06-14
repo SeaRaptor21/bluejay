@@ -177,6 +177,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    public Void visit(Expr.SetIndex expr) {
+        resolve(expr.value);
+        resolve(expr.expr);
+        resolve(expr.index);
+        return null;
+    }
+
     public Void visit(Expr.ListLiteral expr) {
         for (Expr e : expr.elements) {
             resolve(e);

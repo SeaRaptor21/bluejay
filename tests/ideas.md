@@ -3,7 +3,7 @@ In Python, if you want to allow operators for a custom class,
 you would use dunder methods, like `__add__` for the `+` operator.
 This section details a few ideas for how to do this in Bluejay.
 Personally, I find the double underscores a bit too clunky, and
-My first proposal is that we prefix special methods with `$`, as in
+my first proposal is that we prefix special methods with `$`, as in
 `$add`. We also haven't used backticks yet, and I believe that in Mojo
 you can use backticks to put illegal characters in an identifier.
 We could possibly utalize this for operators, so maybe you can define
@@ -25,7 +25,7 @@ print(A(1)+A(1))
 -------
 
 **Equivalent Bluejay code** *(proposed)*
-```blu
+```js
 class A {
     A(v) {
         this.value = v

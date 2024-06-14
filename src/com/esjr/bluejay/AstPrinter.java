@@ -27,6 +27,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         if (thing instanceof Expr.Dict) return visit((Expr.Dict)thing);
         if (thing instanceof Expr.Grouping) return visit((Expr.Grouping)thing);
         if (thing instanceof Expr.Index) return visit((Expr.Index)thing);
+        if (thing instanceof Expr.SetIndex) return visit((Expr.SetIndex)thing);
         if (thing instanceof Expr.ListLiteral) return visit((Expr.ListLiteral)thing);
         if (thing instanceof Expr.Literal) return visit((Expr.Literal)thing);
         if (thing instanceof Expr.Logical) return visit((Expr.Logical)thing);
@@ -65,6 +66,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     public String visit(Expr.Index thing) {
         return "Expr.Index: " + "EXPR(" + visit(thing.expr) + "), " + "INDEX(" + visit(thing.index) + ");";
+    }
+
+    public String visit(Expr.SetIndex thing) {
+        return "Expr.SetIndex: " + "EXPR(" + visit(thing.expr) + "), " + "INDEX(" + visit(thing.index) + "), " + "OPERATOR(" + visit(thing.operator) + "), " + "VALUE(" + visit(thing.value) + ");";
     }
 
     public String visit(Expr.ListLiteral thing) {

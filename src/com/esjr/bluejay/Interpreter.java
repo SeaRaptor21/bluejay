@@ -259,6 +259,51 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
         return eval(expr.expr).getItem(this, eval(expr.index));
     }
 
+    public Value visit(Expr.SetIndex expr) {
+        Value value = eval(expr.value);
+        if (expr.operator.type == EQUAL) {
+            eval(expr.expr).setItem(this, eval(expr.index), value);
+            return value;
+        } else if (expr.operator.type == PLUS_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).add(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        } else if (expr.operator.type == MINUS_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).sub(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        } else if (expr.operator.type == STAR_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).mul(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        } else if (expr.operator.type == SLASH_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).div(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        } else if (expr.operator.type == PERCENT_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).mod(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        } else if (expr.operator.type == STAR_STAR_EQUAL) {
+            Value obj = eval(expr.expr);
+            Value i = eval(expr.index);
+            value = obj.getItem(this, i).pow(this, value);
+            obj.setItem(this, i, value);
+            return value;
+        }
+        throw new UnsupportedOperationException("Token "+expr.operator.lexeme+" is not a valid operator.");
+    }
+
     public Value visit(Expr.ListLiteral expr) {
         BluejayObj list = (BluejayObj)Builtins.listClass.call(this, new ArrayList<Value>());
         try {
