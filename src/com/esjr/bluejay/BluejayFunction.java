@@ -15,6 +15,9 @@ class BluejayFunction extends Value implements BluejayCallable {
     public String toString(Interpreter i) {
         return "<function " + declaration.name.lexeme + ">";
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert function to number");
+    }
 
     public Value call(Interpreter interpreter, List<Value> arguments) {
         Environment environment = new Environment(interpreter.environment);

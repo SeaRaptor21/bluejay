@@ -53,10 +53,16 @@ class Environment {
                     values.put(name.lexeme, values.get(name.lexeme).pow(i, value));
                     break;
                 case PLUS_PLUS:
-                    values.put(name.lexeme, values.get(name.lexeme).add(i, new Value.Number(1)));
+                    List<Value> args = new ArrayList<>();
+                    args.add(new Value.Number(1));
+                    Value one = Builtins.numberClass.call(i, args);
+                    values.put(name.lexeme, values.get(name.lexeme).add(i, one));
                     break;
                 case MINUS_MINUS:
-                    values.put(name.lexeme, values.get(name.lexeme).sub(i, new Value.Number(1)));
+                    args = new ArrayList<>();
+                    args.add(new Value.Number(1));
+                    one = Builtins.numberClass.call(i, args);
+                    values.put(name.lexeme, values.get(name.lexeme).sub(i, one));
                     break;
                 default:
                     throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
@@ -96,12 +102,18 @@ class Environment {
                 case STAR_STAR_EQUAL:
                     values.put(name, values.get(name).pow(i, value));
                     break;
-                case PLUS_PLUS:
-                    values.put(name, values.get(name).add(i, new Value.Number(1)));
-                    break;
-                case MINUS_MINUS:
-                    values.put(name, values.get(name).sub(i, new Value.Number(1)));
-                    break;
+                    case PLUS_PLUS:
+                        List<Value> args = new ArrayList<>();
+                        args.add(new Value.Number(1));
+                        Value one = Builtins.numberClass.call(i, args);
+                        values.put(name, values.get(name).add(i, one));
+                        break;
+                    case MINUS_MINUS:
+                        args = new ArrayList<>();
+                        args.add(new Value.Number(1));
+                        one = Builtins.numberClass.call(i, args);
+                        values.put(name, values.get(name).sub(i, one));
+                        break;
                 default:
                     throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
             }
@@ -151,12 +163,18 @@ class Environment {
             case STAR_STAR_EQUAL:
                 e.values.put(name, e.values.get(name).pow(i, value));
                 break;
-            case PLUS_PLUS:
-                e.values.put(name, e.values.get(name).add(i, new Value.Number(1)));
-                break;
-            case MINUS_MINUS:
-                e.values.put(name, e.values.get(name).sub(i, new Value.Number(1)));
-                break;
+                case PLUS_PLUS:
+                    List<Value> args = new ArrayList<>();
+                    args.add(new Value.Number(1));
+                    Value one = Builtins.numberClass.call(i, args);
+                    e.values.put(name, e.values.get(name).add(i, one));
+                    break;
+                case MINUS_MINUS:
+                    args = new ArrayList<>();
+                    args.add(new Value.Number(1));
+                    one = Builtins.numberClass.call(i, args);
+                    e.values.put(name, e.values.get(name).sub(i, one));
+                    break;
             default:
                 throw new UnsupportedOperationException("Token "+operator.lexeme+" is not a valid assignment operator.");
         }

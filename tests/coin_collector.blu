@@ -1,0 +1,27 @@
+class Board {
+    Board(width, height) {
+        this.cells = [[0]*width]*height
+    }
+    get(x,y) {
+        return this.cells[y][x]
+    }
+    set(x,y, v) {
+        this.cells[y][x] = v
+    }
+    repr(x) {
+        return String(x)
+    }
+    $str() {
+        var res = ""
+        foreach (var y in this.cells) {
+            foreach (var x in y) {
+                res += this.repr(x)+" "
+            }
+            res += "\n"
+        }
+        return res
+    }
+}
+
+var b = Board(10,10)
+print(b)

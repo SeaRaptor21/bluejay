@@ -18,6 +18,9 @@ abstract class NativeMethod extends Value {
     public String toString(Interpreter i) {
         return "<built-in method " + name + ">";
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert method to number");
+    }
 
     abstract public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object);
 

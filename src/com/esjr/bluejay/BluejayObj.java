@@ -14,7 +14,7 @@ class BluejayObj extends Value {
         Value res;
         if (attributes.values.containsKey(attr.lexeme)) res = attributes.values.get(attr.lexeme);
         else res = class_.getStatic(attr.lexeme);
-        if (res == null) throw new RuntimeError.AttributeError(attr, "Undefined attribute '"+attr.lexeme+"' of "+toString());
+        if (res == null) throw new RuntimeError.AttributeError(attr, "Undefined attribute '"+attr.lexeme+"' of "+class_.name+" object");
         if (res instanceof BluejayMethod) {
             return ((BluejayMethod)res).register(this);
         }
@@ -29,7 +29,7 @@ class BluejayObj extends Value {
             attributes.assignStr(i, attr, operator, v);
         } else {
             if (operator.type != TokenType.EQUAL)
-                throw new RuntimeError.AttributeError(operator, "Cannot assign to undefined attribute '"+attr+"' of "+toString());
+                throw new RuntimeError.AttributeError(operator, "Cannot assign to undefined attribute '"+attr+"' of "+class_.name+" object");
             attributes.define(attr, v);
         }
     }
@@ -38,18 +38,99 @@ class BluejayObj extends Value {
         Value maybeStr = class_.getStatic("$str");
         if (maybeStr != null) {
             if (maybeStr instanceof BluejayMethod) {
-                Value res = ((BluejayMethod)maybeStr).call(i, new ArrayList<Value>(), this);
+                Value res;
+                try {
+                    res = ((BluejayMethod)maybeStr).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
+                if (res instanceof BluejayObj && ((BluejayObj)res).class_ == Builtins.stringClass) {
+                    res = new Value.BluejayString((String)((BluejayObj)res).specialAttrs.get("value"));
+                }
                 if (!(res instanceof Value.BluejayString)) throw new RuntimeError.TypeError("The '$str' method must return a string.");
                 else return ((Value.BluejayString)res).value;
             } else if (maybeStr instanceof NativeMethod) {
-                Value res = ((NativeMethod)maybeStr).call(i, new ArrayList<Value>(), this);
+                Value res;
+                try {
+                    res = ((NativeMethod)maybeStr).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
                 if (!(res instanceof Value.BluejayString)) throw new RuntimeError.TypeError("The '$str' method must return a string.");
                 else return ((Value.BluejayString)res).value;
             } else {
-                throw new RuntimeError.TypeError("The attribute name '$str' is reserved for the initializer of "+class_.name);
+                throw new RuntimeError.TypeError("The attribute name '$str' is reserved for the string method of "+class_.name);
             }
         }
         return "<" + class_.name + " object>";
+    }
+
+    public double toNumber(Interpreter i) {
+        Value maybeNum = class_.getStatic("$num");
+        if (maybeNum != null) {
+            if (maybeNum instanceof BluejayMethod) {
+                Value res;
+                try {
+                    res = ((BluejayMethod)maybeNum).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
+                if (res instanceof BluejayObj && ((BluejayObj)res).class_ == Builtins.numberClass) {
+                    res = new Value.Number((double)((BluejayObj)res).specialAttrs.get("value"));
+                }
+                if (!(res instanceof Value.Number)) throw new RuntimeError.TypeError("The '$num' method must return a number.");
+                else return ((Value.Number)res).value;
+            } else if (maybeNum instanceof NativeMethod) {
+                Value res;
+                try {
+                    res = ((NativeMethod)maybeNum).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
+                if (res instanceof BluejayObj && ((BluejayObj)res).class_ == Builtins.numberClass) {
+                    res = new Value.Number((double)((BluejayObj)res).specialAttrs.get("value"));
+                }
+                if (!(res instanceof Value.Number)) throw new RuntimeError.TypeError("The '$num' method must return a number.");
+                else return ((Value.Number)res).value;
+            } else {
+                throw new RuntimeError.TypeError("The attribute name '$num' is reserved for the number method of "+class_.name);
+            }
+        }
+        throw new RuntimeError.TypeError("Cannot convert "+class_.name+" to number");
+    }
+
+    public boolean toBoolean(Interpreter i) {
+        Value maybeBool = class_.getStatic("$bool");
+        if (maybeBool != null) {
+            if (maybeBool instanceof BluejayMethod) {
+                Value res;
+                try {
+                    res = ((BluejayMethod)maybeBool).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
+                if (res instanceof BluejayObj && ((BluejayObj)res).class_ == Builtins.booleanClass) {
+                    res = new Value.BluejayBoolean((boolean)((BluejayObj)res).specialAttrs.get("value"));
+                }
+                if (!(res instanceof Value.BluejayBoolean)) throw new RuntimeError.TypeError("The '$bool' method must return a boolean.");
+                else return ((Value.BluejayBoolean)res).value;
+            } else if (maybeBool instanceof NativeMethod) {
+                Value res;
+                try {
+                    res = ((NativeMethod)maybeBool).call(i, new ArrayList<Value>(), this);
+                } catch (Interpreter.Return r) {
+                    res = r.value;
+                }
+                if (res instanceof BluejayObj && ((BluejayObj)res).class_ == Builtins.booleanClass) {
+                    res = new Value.BluejayBoolean((boolean)((BluejayObj)res).specialAttrs.get("value"));
+                }
+                if (!(res instanceof Value.BluejayBoolean)) throw new RuntimeError.TypeError("The '$bool' method must return a boolean.");
+                else return ((Value.BluejayBoolean)res).value;
+            } else {
+                throw new RuntimeError.TypeError("The attribute name '$bool' is reserved for the boolean method of "+class_.name);
+            }
+        }
+        return true;
     }
 
     private Value tryOperator(Interpreter i, String name, Value... arguments) {

@@ -18,4 +18,7 @@ abstract class NativeFunction extends Value implements BluejayCallable {
     public String toString(Interpreter i) {
         return "<built-in function "+name+">";
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert function to number");
+    }
 }

@@ -1,0 +1,1 @@
+var _="var _={};print(_.format(_))";print(_.format(_))

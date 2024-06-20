@@ -61,6 +61,11 @@ public class Bluejay {
         Parser parser = new Parser(tokens);
         List<Stmt> stmts = parser.parse();
 
+        // AstPrinter printer = new AstPrinter();
+        // for (Stmt stmt : stmts) {
+        //     System.out.println(printer.visit(stmt));
+        // }
+
         if (hadError) return;
 
         Interpreter interpreter = new Interpreter();

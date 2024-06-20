@@ -43,6 +43,9 @@ class BluejayClass extends Value implements BluejayCallable {
     public String toString(Interpreter i) {
         return "<class "+name+">";
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert class to number");
+    }
 
     public Value call(Interpreter interpreter, List<Value> arguments) {
         BluejayObj obj = new BluejayObj(this);

@@ -42,4 +42,14 @@ class RuntimeError extends RuntimeException {
             super(message);
         }
     }
+
+    public static class ValueError extends RuntimeError {
+        ValueError(Token token, String message) {
+            super(token, message);
+        }
+
+        ValueError(String message) {
+            super(message);
+        }
+    }
 }

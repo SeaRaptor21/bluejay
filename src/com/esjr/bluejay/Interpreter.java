@@ -25,7 +25,7 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
             this.statement = statement;
         }
     }
-    
+
     void interpret(List<Stmt> stmts) {
         try {
             for (Stmt stmt : stmts) {
@@ -41,7 +41,7 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
             Bluejay.runtimeError(error);
         }
     }
-    
+
     public void exec(List<Stmt> stmts) {
         for (Stmt stmt : stmts) {
             exec(stmt);
@@ -63,7 +63,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
 
     public Void visit(Stmt.Break stmt) {
         Value v = stmt.value == null ? new Value.Number(1) : eval(stmt.value);
-        assert v instanceof Value.Number;
+        if (v instanceof BluejayObj && ((BluejayObj)v).class_ == Builtins.numberClass)
+            v = new Value.Number(v.toNumber(this));
         if (!(v instanceof Value.Number) || ((Value.Number)v).value%1 != 0) throw new RuntimeError(stmt.keyword, "Break amount must be an integer.");
         throw new Break((int)((Value.Number)v).value, stmt);
     }
@@ -144,8 +145,9 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
 
     public Void visit(Stmt.Repeat stmt) {
         Value amount = eval(stmt.amount);
-        if (amount instanceof Value.Number) {
-            for (int i=0; i<((Value.Number)amount).value; i++) {
+        if (amount instanceof BluejayObj && ((BluejayObj)amount).class_ == Builtins.numberClass) {
+            double num = ((BluejayObj)amount).toNumber(this);
+            for (int i=0; i<num; i++) {
                 try {
                     exec(stmt.body);
                 } catch (Break b) {
@@ -320,7 +322,17 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     }
 
     public Value visit(Expr.Literal expr) {
-        return expr.value;
+        if (expr.value instanceof Value.BluejayString) {
+            List<Value> args = new ArrayList<>();
+            args.add(expr.value);
+            return (BluejayObj)Builtins.stringClass.call(this, args);
+        } else if (expr.value instanceof Value.Number) {
+            List<Value> args = new ArrayList<>();
+            args.add(expr.value);
+            return (BluejayObj)Builtins.numberClass.call(this, args);
+        } else {
+            return expr.value;
+        }
     }
 
     public Value visit(Expr.Logical expr) {
@@ -378,6 +390,7 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     private Value lookUpVariable(Token name, Expr expr) {
         //if (name.type == THIS) return environment.get(name);
         Integer distance = locals.get(expr);
+        System.out.println(distance);
         if (distance != null) {
             return environment.getAt(distance, name.lexeme);
         } else {
@@ -394,11 +407,11 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
         }
     }
 
-    private String typeOf(Value x) {
+    public String typeOf(Value x) {
         return x.getClass().getSimpleName();
     }
 
-    private boolean truthy(Value x) {
+    public boolean truthy(Value x) {
         if (x instanceof Value.BluejayBoolean) {
             return ((Value.BluejayBoolean)x).value;
         } else if (x instanceof Value.Number) {
@@ -411,6 +424,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
             return ((Value.Dict)x).elements.size() > 0;
         } else if (x instanceof Value.Null) {
             return false;
+        } else if (x instanceof BluejayObj) {
+            return ((BluejayObj)x).toBoolean(this);
         }
         return false;
     }

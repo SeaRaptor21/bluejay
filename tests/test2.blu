@@ -8,4 +8,4 @@ class Test {
     }
 }
 
-print(Test(5) + est(7)
+print(Test(5) + Test(7))

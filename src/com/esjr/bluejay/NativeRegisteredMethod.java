@@ -20,6 +20,9 @@ class NativeRegisteredMethod extends Value implements BluejayCallable {
     public String toString(Interpreter i) {
         return method.toString();
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert method to number");
+    }
 
     public Value call(Interpreter interpreter, List<Value> arguments) {
         return method.call(interpreter, arguments, obj);

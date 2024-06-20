@@ -15,6 +15,9 @@ class BluejayMethod extends Value {
     public String toString(Interpreter i) {
         return "<method " + declaration.name.lexeme + ">";
     }
+    public double toNumber(Interpreter i) {
+        throw new RuntimeError.TypeError("Cannot convert method to number");
+    }
 
     public Value call(Interpreter interpreter, List<Value> arguments, Value object) {
         Environment environment = new Environment(interpreter.environment);

@@ -4,6 +4,7 @@ import java.util.*;
 
 abstract class Value {
     public abstract String toString(Interpreter i);
+    public abstract double toNumber(Interpreter i);
 
     public Value add(Interpreter i, Value other) {
         throw new RuntimeError("Unsupported operation '+' for object");
@@ -68,6 +69,9 @@ abstract class Value {
         public String toString(Interpreter i) {
             String str = String.valueOf(value);
             return value%1 == 0 ? str.substring(0,str.length()-2) : str;
+        }
+        public double toNumber(Interpreter i) {
+            return value;
         }
 
         public Value add(Interpreter i, Value other) {
@@ -134,6 +138,9 @@ abstract class Value {
         public String toString(Interpreter i) {
             return value;
         }
+        public double toNumber(Interpreter i) {
+            throw new RuntimeError.TypeError("Cannot convert string to number");
+        }
     }
 
     static class BluejayBoolean extends Value {
@@ -143,6 +150,9 @@ abstract class Value {
         }
         public String toString(Interpreter i) {
             return value ? "true" : "false";
+        }
+        public double toNumber(Interpreter i) {
+            return value ? 1 : 0;
         }
     }
 
@@ -158,6 +168,9 @@ abstract class Value {
             }
             return "[" + String.join(", ", elems) + "]";
         }
+        public double toNumber(Interpreter i) {
+            throw new RuntimeError.TypeError("Cannot convert list to number");
+        }
         public List<Value> iter() {
             return elements;
         }
@@ -171,6 +184,9 @@ abstract class Value {
         public String toString(Interpreter i) {
             return "{" + String.join(", ", (String[])elements.keySet().stream().map(e -> e.toString()+": "+elements.get(e).toString()).toArray()) + "}";
         }
+        public double toNumber(Interpreter i) {
+            throw new RuntimeError.TypeError("Cannot convert dict to number");
+        }
         public List<Value> iter() {
             List<Value> list = new ArrayList<Value>();
             list.addAll(elements.keySet());
@@ -181,6 +197,9 @@ abstract class Value {
     static class Null extends Value {
         public String toString(Interpreter i) {
             return "null";
+        }
+        public double toNumber(Interpreter i) {
+            return 0;
         }
     }
 }

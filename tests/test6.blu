@@ -1,0 +1,19 @@
+class A {
+    A(v) {
+        this.value = v
+    }
+    $str() {
+        return String(this.value)
+    }
+    $num() {
+        return Number(this.value)
+    }
+    $bool() {
+        return Boolean(this.value)
+    }
+}
+
+var x = A("false")
+print(x)
+print(Boolean(x))
+print(Number(x))
