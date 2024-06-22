@@ -390,7 +390,6 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
     private Value lookUpVariable(Token name, Expr expr) {
         //if (name.type == THIS) return environment.get(name);
         Integer distance = locals.get(expr);
-        System.out.println(distance);
         if (distance != null) {
             return environment.getAt(distance, name.lexeme);
         } else {

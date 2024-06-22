@@ -1,0 +1,15 @@
+var x = Number(input("Enter a number: "))
+var y = Number(input("Enter a second number: "))
+var op = input("Choose an operation (+, -, *, or /): ")
+
+if (op == "+") {
+    print("The result is: "+String(x+y))
+} else if (op == "-") {
+    print("The result is: "+String(x-y))
+} else if (op == "*") {
+    print("The result is: "+String(x*y))
+} else if (op == "/") {
+    print("The result is: "+String(x/y))
+} else {
+    print("Invalid operation.")
+}

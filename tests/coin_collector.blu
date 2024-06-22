@@ -14,10 +14,10 @@ class Board {
     $str() {
         var res = ""
         foreach (var y in this.cells) {
-            foreach (var x in y) {
-                res += this.repr(x)+" "
-            }
-            res += "\n"
+            //foreach (var x in y) {
+            //    res += this.repr(x)+" "
+            //}
+            //res += "\n"
         }
         return res
     }

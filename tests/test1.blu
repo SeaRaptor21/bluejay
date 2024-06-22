@@ -8,4 +8,4 @@ func factorial(x) {
     }
 }
 
-print(factorial(359))
+print(factorial(344))

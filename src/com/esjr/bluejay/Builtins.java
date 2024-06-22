@@ -31,9 +31,17 @@ class Builtins {
                 try {
                     InputStreamReader input = new InputStreamReader(System.in);
                     BufferedReader reader = new BufferedReader(input);
-                    System.out.print(((Value.BluejayString)arguments.get(0)).value);
+                    String prompt;
+                    if (!(arguments.get(0) instanceof BluejayObj) || ((BluejayObj)arguments.get(0)).class_ != stringClass) {
+                        throw new RuntimeError.TypeError("Prompt must be a string.");
+                    } else {
+                        prompt = (String)((BluejayObj)arguments.get(0)).specialAttrs.get("value");
+                    }
+                    System.out.print(prompt);
                     String line = reader.readLine();
-                    return new Value.BluejayString(line);
+                    List<Value> args = new ArrayList<>();
+                    args.add(new Value.BluejayString(line));
+                    return (BluejayObj)Builtins.stringClass.call(interpreter, args);
                 } catch (IOException e) {
                     return new Value.Null();
                 }
@@ -86,6 +94,34 @@ class Builtins {
                 } catch (NumberFormatException e) {
                     throw new RuntimeError.TypeError("Cannot convert string with literal '"+(String)object.specialAttrs.get("value")+"' to number");
                 }
+            }
+        });
+        stringClass.addStatic("$add", new NativeMethod(1, "$add") {
+            @SuppressWarnings("unchecked")
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                String value = (String)object.specialAttrs.get("value");
+                Value otherObj = arguments.get(0);
+                if (!(otherObj instanceof BluejayObj) || ((BluejayObj)otherObj).class_ != stringClass) {
+                    throw new RuntimeError.TypeError("Cannot add string and "+interpreter.typeOf(otherObj));
+                }
+                String other = (String)((BluejayObj)otherObj).specialAttrs.get("value");
+                List<Value> args = new ArrayList<>();
+                args.add(new Value.BluejayString(value+other));
+                return (BluejayObj)Builtins.numberClass.call(interpreter, args);
+            }
+        });
+        stringClass.addStatic("$eq", new NativeMethod(1, "$eq") {
+            @SuppressWarnings("unchecked")
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                String value = (String)object.specialAttrs.get("value");
+                Value otherObj = arguments.get(0);
+                if (!(otherObj instanceof BluejayObj) || ((BluejayObj)otherObj).class_ != stringClass) {
+                    throw new RuntimeError.TypeError("Cannot compare string and "+interpreter.typeOf(otherObj));
+                }
+                String other = (String)((BluejayObj)otherObj).specialAttrs.get("value");
+                List<Value> args = new ArrayList<>();
+                args.add(new Value.BluejayBoolean(value.equals(other)));
+                return (BluejayObj)booleanClass.call(interpreter, args);
             }
         });
         globals.define("String", stringClass);
@@ -337,7 +373,9 @@ class Builtins {
         });
         listClass.addStatic("length", new NativeMethod(0, "length") {
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
-                return new Value.Number(((List)object.specialAttrs.get("elements")).size());
+                List<Value> args = new ArrayList<>();
+                args.add(new Value.Number(((List)object.specialAttrs.get("elements")).size()));
+                return numberClass.call(interpreter, args);
             }
         });
         listClass.addStatic("append", new NativeMethod(1, "append") {
@@ -357,6 +395,8 @@ class Builtins {
             @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 Value index = arguments.get(0);
+                if (index instanceof BluejayObj && ((BluejayObj)index).class_ == numberClass)
+                    index = new Value.Number(index.toNumber(interpreter));
                 if (!(index instanceof Value.Number) || ((Value.Number)index).value % 1 != 0) throw new RuntimeError.TypeError("List indecies must be integers");
                 int i = (int)((Value.Number)index).value;
                 List<Value> elems = (List<Value>)object.specialAttrs.get("elements");
@@ -368,6 +408,8 @@ class Builtins {
             @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 Value index = arguments.get(0);
+                if (index instanceof BluejayObj && ((BluejayObj)index).class_ == numberClass)
+                    index = new Value.Number(index.toNumber(interpreter));
                 if (!(index instanceof Value.Number) || ((Value.Number)index).value % 1 != 0) throw new RuntimeError.TypeError("List indecies must be integers");
                 int i = (int)((Value.Number)index).value;
                 List<Value> elems = (List<Value>)object.specialAttrs.get("elements");
