@@ -316,9 +316,8 @@ class Interpreter implements Expr.Visitor<Value>, Stmt.Visitor<Object> {
             }
         } catch (ClassCastException e) {
             System.err.println("Cannot access elements of list.");
-        } finally {
-            return list;
         }
+        return list;
     }
 
     public Value visit(Expr.Literal expr) {

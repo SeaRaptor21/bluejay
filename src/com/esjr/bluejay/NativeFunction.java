@@ -1,6 +1,7 @@
 package com.esjr.bluejay;
 
 import java.util.*;
+@SuppressWarnings("unused")
 
 abstract class NativeFunction extends Value implements BluejayCallable {
     int arity;

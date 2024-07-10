@@ -52,9 +52,8 @@ def define_printer(classes):
     code = '''package com.esjr.bluejay;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-class AstPrinter implements '''+', '.join(c[0]+'.Visitor<String>' for c in classes)+' {\n    public String visit(Object thing) {\n        if (thing instanceof Expr) return visit((Expr)thing);\n        if (thing instanceof Stmt) return visit((Stmt)thing);\n        return thing.toString();\n    }\n\n    public String visit(List thing) {\n        List<String> elems = new ArrayList<String>();\n        for (Object e : thing) {\n            elems.add(visit(e));\n        }\n        return "["+String.join(", ", elems)+"]";\n    }\n\n'
+class AstPrinter implements '''+', '.join(c[0]+'.Visitor<String>' for c in classes)+' {\n    public String visit(Object thing) {\n        if (thing instanceof Expr) return visit((Expr)thing);\n        if (thing instanceof Stmt) return visit((Stmt)thing);\n        return thing.toString();\n    }\n\n    public String visit(List<Object> thing) {\n        List<String> elems = new ArrayList<String>();\n        for (Object e : thing) {\n            elems.add(visit(e));\n        }\n        return "["+String.join(", ", elems)+"]";\n    }\n\n'
     mthds = []
     for c in classes:
         mthds.append('    public String visit('+c[0]+' thing) {\n        '+'\n        '.join([

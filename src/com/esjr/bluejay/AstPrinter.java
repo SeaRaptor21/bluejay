@@ -1,7 +1,6 @@
 package com.esjr.bluejay;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     public String visit(Object thing) {
@@ -10,7 +9,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         return thing.toString();
     }
 
-    public String visit(List thing) {
+    public String visit(List<Object> thing) {
         List<String> elems = new ArrayList<String>();
         for (Object e : thing) {
             elems.add(visit(e));

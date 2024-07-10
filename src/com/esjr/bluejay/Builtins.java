@@ -1,7 +1,6 @@
 package com.esjr.bluejay;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,12 +51,15 @@ class Builtins {
         stringClass = new NativeClass("String", null);
         stringClass.addStatic("String", new NativeMethod(1, "String") {
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
-                object.specialAttrs.put("value", arguments.get(0).toString(interpreter));
+                object.specialAttrs.put("value", arguments.get(0).toString(interpreter)
+                    .replace("\\n", "\n")
+                    .replace("\\t", "\t")
+                    .replace("\\r", "\r")
+                );
                 return new Value.Null();
             }
         });
         stringClass.addStatic("replace", new NativeMethod(2, "replace") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 String replace;
                 if (!(arguments.get(0) instanceof BluejayObj) || ((BluejayObj)arguments.get(0)).class_ != stringClass) {
@@ -75,19 +77,16 @@ class Builtins {
             }
         });
         stringClass.addStatic("$str", new NativeMethod(0, "$str") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 return new Value.BluejayString((String)object.specialAttrs.get("value"));
             }
         });
         stringClass.addStatic("$bool", new NativeMethod(0, "$bool") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 return new Value.BluejayBoolean(((String)object.specialAttrs.get("value")).length() > 0);
             }
         });
         stringClass.addStatic("$num", new NativeMethod(0, "$num") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 try {
                     return new Value.Number(Double.parseDouble((String)object.specialAttrs.get("value")));
@@ -97,7 +96,6 @@ class Builtins {
             }
         });
         stringClass.addStatic("$add", new NativeMethod(1, "$add") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 String value = (String)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -107,11 +105,10 @@ class Builtins {
                 String other = (String)((BluejayObj)otherObj).specialAttrs.get("value");
                 List<Value> args = new ArrayList<>();
                 args.add(new Value.BluejayString(value+other));
-                return (BluejayObj)Builtins.numberClass.call(interpreter, args);
+                return (BluejayObj)Builtins.stringClass.call(interpreter, args);
             }
         });
         stringClass.addStatic("$eq", new NativeMethod(1, "$eq") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 String value = (String)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -135,7 +132,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$add", new NativeMethod(1, "$add") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -149,7 +145,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$sub", new NativeMethod(1, "$sub") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -163,7 +158,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$mul", new NativeMethod(1, "$mul") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -177,7 +171,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$div", new NativeMethod(1, "$div") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -192,7 +185,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$mod", new NativeMethod(1, "$mod") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -207,7 +199,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$pow", new NativeMethod(1, "$pow") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -221,7 +212,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$eq", new NativeMethod(1, "$eq") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -235,7 +225,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$lt", new NativeMethod(1, "$lt") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -249,7 +238,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$lte", new NativeMethod(1, "$lte") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -263,7 +251,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$gt", new NativeMethod(1, "$gt") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -277,7 +264,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$gte", new NativeMethod(1, "$gte") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -291,7 +277,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$ne", new NativeMethod(1, "$ne") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 Value otherObj = arguments.get(0);
@@ -318,7 +303,6 @@ class Builtins {
             }
         });
         numberClass.addStatic("$str", new NativeMethod(0, "$str") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 double value = (double)object.specialAttrs.get("value");
                 if (value % 1 == 0) return new Value.BluejayString(String.valueOf((int)value));
@@ -346,7 +330,6 @@ class Builtins {
             }
         });
         booleanClass.addStatic("$str", new NativeMethod(0, "$str") {
-            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 return new Value.BluejayString((boolean)object.specialAttrs.get("value") ? "true" : "false");
             }
@@ -372,9 +355,10 @@ class Builtins {
             }
         });
         listClass.addStatic("length", new NativeMethod(0, "length") {
+            @SuppressWarnings("unchecked")
             public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
                 List<Value> args = new ArrayList<>();
-                args.add(new Value.Number(((List)object.specialAttrs.get("elements")).size()));
+                args.add(new Value.Number(((List<Value>)object.specialAttrs.get("elements")).size()));
                 return numberClass.call(interpreter, args);
             }
         });

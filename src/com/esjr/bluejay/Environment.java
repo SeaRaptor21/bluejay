@@ -2,8 +2,6 @@ package com.esjr.bluejay;
 
 import java.util.*;
 
-import static com.esjr.bluejay.TokenType.*;
-
 class Environment {
     final Environment enclosing;
     final Map<String, Value> values = new HashMap<>();

@@ -29,3 +29,6 @@ runit.py
 __pycache__
 readme.txt
 setenv.sh
+
+# vscode
+.vscode

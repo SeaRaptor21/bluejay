@@ -2,7 +2,7 @@ package com.esjr.bluejay;
 
 import java.util.*;
 
-class NativeClass extends BluejayClass implements BluejayCallable {
+class NativeClass extends BluejayClass {
     NativeClass(String name, BluejayClass inherits) {
         super(null, inherits);
         this.name = name;

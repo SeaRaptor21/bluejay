@@ -1,0 +1,35 @@
+// Writing a Brainfuck interpreter inside of my interpreted
+// language almost feels too meta, but I'm doing it anyway.
+
+func brainfuck(code) {
+    var cells = {0:0}
+    var pos = 0
+    for (var i=0; i<code.length; i++) {
+        var ch = code[i]
+        if (ch == "+") cells[pos]++
+        else if (ch == "-") cells[pos]--
+        else if (ch == ">") pos++
+        else if (ch == "<") pos--
+        else if (ch == ".") print(char(cells[pos]))
+        else if (ch == ",") cells[pos] = uni(input()[0])
+        else if (ch == "[" and cells[pos] == 0) {
+            var left = 1
+            while (left>0) {
+                i++
+                if (code[i] == "[") left++
+                else if (code[i] == "]") left--
+            }
+            i++
+        }
+        else if (ch == "]" and cells[pos] != 0) {
+            var right = 1
+            while (right>0) {
+                i--
+                if (code[i] == "[") right--
+                else if (code[i] == "]") right++
+            }
+        }
+    }
+}
+
+var code = "+[-->-[>>+>-----<<]<--<---]>-.>>>+.>>..+++[.>]<<<<.+++.------.<<-.>>>>+."

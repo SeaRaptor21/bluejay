@@ -139,7 +139,7 @@ abstract class Value {
             return value;
         }
         public double toNumber(Interpreter i) {
-            throw new RuntimeError.TypeError("Cannot convert string to number");
+            throw new RuntimeError.TypeError("Cannot convert string with literal '"+value+"' to number");
         }
     }
 

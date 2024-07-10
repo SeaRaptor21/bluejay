@@ -79,8 +79,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     public Void visit(Stmt.Foreach stmt) {
-        beginScope();
         resolve(stmt.iter);
+        beginScope();
         declare(stmt.loopVar);
         define(stmt.loopVar);
         resolve(stmt.body);

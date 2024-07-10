@@ -10,7 +10,7 @@ var c = [a1,a2]
 
 foreach (var y in c) {
     print(y)
-    foreach (var x in y) {
+    foreach (var x in y) { // PROBLEM HERE: the 'y' expression is resolved to a scope of 2 when it should be 1 (As it is in the above line).
         print(x)
     }
 }

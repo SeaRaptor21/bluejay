@@ -9,19 +9,30 @@ class Board {
         this.cells[y][x] = v
     }
     repr(x) {
-        return String(x)
+        return [".","X","0"][x]
     }
     $str() {
         var res = ""
         foreach (var y in this.cells) {
-            //foreach (var x in y) {
-            //    res += this.repr(x)+" "
-            //}
-            //res += "\n"
+            foreach (var x in y) {
+                res += this.repr(x)+" "
+            }
+            res += "\n"
         }
         return res
     }
 }
 
-var b = Board(10,10)
-print(b)
+class Game {
+    Game(bw,bh, px,py) {
+        this.board = Board(bw,bh)
+        this.px = px
+        this.py = py
+    }
+    run() {
+
+    }
+}
+
+var g = Game(10,10,5,5)
+g.run()

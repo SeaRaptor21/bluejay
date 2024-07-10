@@ -1,6 +1,5 @@
 package com.esjr.bluejay;
 
-import java.lang.*; 
 import java.util.*;
 import static com.esjr.bluejay.TokenType.*;
 
@@ -453,6 +452,7 @@ class Parser {
         throw error(peek(), "Expression expected.");
     }
 
+    @SuppressWarnings("incomplete-switch") // DEBUG: leave until body is complete 
     private void synchronize() {
         /* Goes into panic mode -- we know the code has an error,
         so we're never going to try to run it, but we should still
@@ -470,7 +470,7 @@ class Parser {
         while (!isAtEnd()) {
             if (previous().type == EOS && tokens.get(current - 2).type != RIGHT_BRACE) return;
             switch (peek().type) {
-                // add cases for every token we know starts a statement (IF, WHILE, etc.)
+                // TODO: add cases for every token we know starts a statement (IF, WHILE, etc.)
                     // return;
             }
             advance();
@@ -494,6 +494,7 @@ class Parser {
         return peek().type == type;
     }
 
+    @SuppressWarnings("unused")
     private boolean checkNext(TokenType... types) {
         return checkNext(1, types);
     }
@@ -516,6 +517,7 @@ class Parser {
         return tokens.get(current);
     }
 
+    @SuppressWarnings("unused")
     private Token peekNext() {
         return peekNext(1);
     }
@@ -551,6 +553,7 @@ class Parser {
         return false;
     }
 
+    @SuppressWarnings("unused")
     private boolean matchNewline() {
         if (check(EOS) && peek().lexeme.contains(System.getProperty("line.separator"))) {
             advance();
