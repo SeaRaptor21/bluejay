@@ -38,9 +38,7 @@ class Builtins {
                     }
                     System.out.print(prompt);
                     String line = reader.readLine();
-                    List<Value> args = new ArrayList<>();
-                    args.add(new Value.BluejayString(line));
-                    return (BluejayObj)Builtins.stringClass.call(interpreter, args);
+                    return makeStringValue(interpreter, line);
                 } catch (IOException e) {
                     return new Value.Null();
                 }
@@ -73,7 +71,50 @@ class Builtins {
                 } else {
                     replaceWith = (String)((BluejayObj)arguments.get(1)).specialAttrs.get("value");
                 }
-                return new Value.BluejayString(((String)object.specialAttrs.get("value")).replace(replace, replaceWith));
+                return makeStringValue(interpreter,((String)object.specialAttrs.get("value")).replace(replace, replaceWith));
+            }
+        });
+        stringClass.addStatic("sub", new NativeMethod(2, "sub") {
+            public Value call(Interpreter interp, List<Value> arguments, BluejayObj object) {
+                String internalValue = (String)object.specialAttrs.get("value");
+                Value index1 = arguments.get(0);
+                Value index2 = arguments.get(1);
+                if (index1 instanceof BluejayObj && ((BluejayObj)index1).class_ == numberClass)
+                    index1 = new Value.Number(index1.toNumber(interp));
+                if (!(index1 instanceof Value.Number) || ((Value.Number)index1).value % 1 != 0) throw new RuntimeError.TypeError("String indices must be integers");
+                if (index2 instanceof BluejayObj && ((BluejayObj)index2).class_ == numberClass)
+                    index2 = new Value.Number(index2.toNumber(interp));
+                if (!(index2 instanceof Value.Number) || ((Value.Number)index2).value % 1 != 0) throw new RuntimeError.TypeError("String indices must be integers");
+                int i1 = (int)((Value.Number)index1).value;
+                int i2 = (int)((Value.Number)index2).value;
+                if (i1 < 0) throw new RuntimeError.TypeError("First index must be positive");
+                if (i2 > internalValue.length()) throw new RuntimeError.TypeError("Second index beyond string length");
+                if (i1 > i2) throw new RuntimeError.TypeError("First index cannot be larger than second index");
+                String newSubString = internalValue.substring(i1, i2);
+                return makeStringValue(interp, newSubString);
+            }
+        });
+        stringClass.addStatic("find", new NativeMethod(1, "find"){
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                String toFind;
+                if (!(arguments.get(0) instanceof BluejayObj) || ((BluejayObj)arguments.get(0)).class_ != stringClass) {
+                    throw new RuntimeError.TypeError("Thing to find must be a string.");
+                } else {
+                    toFind = (String)((BluejayObj)arguments.get(0)).specialAttrs.get("value");
+                }
+                String internalValue = (String)object.specialAttrs.get("value");
+                int index = internalValue.indexOf(toFind);
+                List<Value> args = new ArrayList<>();
+                args.add(new Value.Number(index));
+                return numberClass.call(interpreter, args);
+            }
+        });
+        stringClass.addStatic("length", new NativeMethod(0, "length") {
+            public Value call(Interpreter interpreter, List<Value> arguments, BluejayObj object) {
+                List<Value> args = new ArrayList<>();
+                String internalValue = (String)object.specialAttrs.get("value");
+                args.add(new Value.Number(internalValue.length()));
+                return numberClass.call(interpreter, args);
             }
         });
         stringClass.addStatic("$str", new NativeMethod(0, "$str") {
@@ -103,9 +144,7 @@ class Builtins {
                     throw new RuntimeError.TypeError("Cannot add string and "+interpreter.typeOf(otherObj));
                 }
                 String other = (String)((BluejayObj)otherObj).specialAttrs.get("value");
-                List<Value> args = new ArrayList<>();
-                args.add(new Value.BluejayString(value+other));
-                return (BluejayObj)Builtins.stringClass.call(interpreter, args);
+                return makeStringValue(interpreter,value+other);
             }
         });
         stringClass.addStatic("$eq", new NativeMethod(1, "$eq") {
@@ -433,5 +472,11 @@ class Builtins {
             }
         });
         globals.define("List", listClass);
+    }
+    
+    public static Value makeStringValue(Interpreter interpreter, String realValue) {
+        List<Value> args = new ArrayList<>();
+        args.add(new Value.BluejayString(realValue));
+        return Builtins.stringClass.call(interpreter, args);
     }
 }
